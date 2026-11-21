@@ -1,0 +1,13 @@
+# ============================================================
+# .gitignore — file e cartelle che git NON deve salvare nel repository
+# ============================================================
+# Questo repository è PUBBLICO: non contiene dati né token.
+# Il token GitHub si inserisce solo nella pagina Impostazioni della PWA
+# e resta nella memoria locale del dispositivo (vedi SPEC 6.1).
+
+# --- Editor e sistema operativo ------------------------------
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
