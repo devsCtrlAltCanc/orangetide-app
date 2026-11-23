@@ -1,0 +1,584 @@
+/* ============================================================
+   css/style.css — STILE DI OrangeTide (SPEC 10.2)
+   ============================================================
+   Si appoggia a Bootstrap 5.3 e ne cambia colori e dettagli.
+   Idea grafica: fondo grigio chiarissimo, grandi pannelli bianchi molto
+   arrotondati, dentro "tessere" grigie con numeri grandi; arancione come
+   colore d'accento (voce di menu attiva, tessera principale sfumata,
+   grafici), sia su fondo chiaro sia su fondo scuro.
+
+   Come funzionano i colori:
+     - le "variabili CSS" (--nome: valore) sono definite una volta qui
+       sotto e riusate ovunque con var(--nome);
+     - [data-bs-theme="dark"] contiene i valori per il tema scuro: app.js
+       mette data-bs-theme="light" o "dark" sull'elemento <html>.
+   Per cambiare un colore basta modificarlo nelle sezioni 1 e 2.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. COLORI — TEMA CHIARO (predefinito)
+   ------------------------------------------------------------ */
+:root,
+[data-bs-theme="light"] {
+  --ot-brand: #F7841A;             /* arancione OrangeTide */
+  --ot-brand-light: #FBB062;       /* arancione chiaro (fine della sfumatura) */
+  --ot-brand-text: #C25E05;        /* arancione scuro: testo leggibile su fondo chiaro */
+  --ot-brand-soft: #FFF1E4;        /* arancione chiarissimo: sfondi evidenziati */
+  --ot-gradient: linear-gradient(135deg, #F26A1B 0%, #F7841A 45%, #FBB062 100%);
+
+  --ot-buy: #22A06B;
+  --ot-buy-soft: #E3F5EC;
+  --ot-hold: #6B7280;
+  --ot-hold-soft: #EEF0F3;
+  --ot-sell: #E5484D;
+  --ot-sell-soft: #FDECEC;
+
+  --ot-bg: #F4F5F9;                /* sfondo della pagina */
+  --ot-panel: #FFFFFF;             /* pannelli (riquadri dei widget) */
+  --ot-tile: #F6F7FB;              /* tessere dentro i pannelli */
+  --ot-border: #ECEEF3;
+  --ot-text: #1B1F2A;
+  --ot-muted: #7A8091;
+  --ot-shadow: 0 4px 24px rgba(28, 39, 64, 0.06);
+
+  /* Collegamento ai colori di Bootstrap: così anche i suoi componenti li usano */
+  --bs-body-bg: var(--ot-bg);
+  --bs-body-color: var(--ot-text);
+  --bs-border-color: var(--ot-border);
+  --bs-secondary-color: var(--ot-muted);
+  --bs-link-color: var(--ot-brand-text);
+  --bs-link-color-rgb: 194, 94, 5;
+  --bs-link-hover-color: var(--ot-brand);
+  --bs-body-font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ------------------------------------------------------------
+   2. COLORI — TEMA SCURO
+   ------------------------------------------------------------ */
+[data-bs-theme="dark"] {
+  --ot-brand-text: #FFA552;
+  --ot-brand-soft: #2B1E12;
+
+  --ot-buy: #3CC48A;
+  --ot-buy-soft: #133126;
+  --ot-hold: #A0A6B4;
+  --ot-hold-soft: #23272F;
+  --ot-sell: #F06A6E;
+  --ot-sell-soft: #3A1A1C;
+
+  --ot-bg: #0D0F14;
+  --ot-panel: #161920;
+  --ot-tile: #1E222B;
+  --ot-border: #262A34;
+  --ot-text: #E8EAF0;
+  --ot-muted: #9097A6;
+  --ot-shadow: none;
+
+  --bs-body-bg: var(--ot-bg);
+  --bs-body-color: var(--ot-text);
+  --bs-border-color: var(--ot-border);
+  --bs-secondary-color: var(--ot-muted);
+  --bs-link-color: var(--ot-brand-text);
+  --bs-link-color-rgb: 255, 165, 82;
+  --bs-tertiary-bg: var(--ot-panel);
+}
+
+/* ------------------------------------------------------------
+   3. STRUTTURA: menu laterale (PC), colonna principale
+   ------------------------------------------------------------ */
+/* Larghezza del menu laterale e punto in cui compare (992px = Bootstrap "lg") */
+:root { --ot-sidebar-width: 250px; }
+
+body {
+  background: var(--ot-bg);
+  color: var(--ot-text);
+  font-family: var(--bs-body-font-family);
+  /* spazio in basso per la barra di navigazione del telefono
+     (+ la zona "di sicurezza" dell'iPhone, sotto la barra di sistema) */
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+
+.ot-sidebar { display: none; }      /* su telefono/tablet il menu laterale non c'è */
+
+@media (min-width: 992px) {
+  body { padding-bottom: 0; }
+
+  .ot-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: var(--ot-sidebar-width);
+    padding: 1.25rem 1rem;
+    background: var(--ot-panel);
+    border-right: 1px solid var(--ot-border);
+    z-index: 1030;
+  }
+  .ot-shell { margin-left: var(--ot-sidebar-width); }
+  .ot-tabbar, .ot-brand-top { display: none !important; }
+}
+
+/* ------------------------------------------------------------
+   4. LOGO E MENU LATERALE
+   ------------------------------------------------------------ */
+.ot-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--ot-text);
+  text-decoration: none;
+}
+.ot-brand img { border-radius: 10px; }
+.ot-brand b { color: var(--ot-brand); font-weight: 800; }
+.ot-sidebar .ot-brand { padding: 0 0.5rem 1.5rem; }
+
+.ot-side-nav { display: flex; flex-direction: column; gap: 0.25rem; }
+.ot-side-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.75rem;
+  color: var(--ot-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+.ot-side-link i { font-size: 1.1rem; color: var(--ot-muted); }
+.ot-side-link:hover { background: var(--ot-tile); }
+/* Voce attiva: arancione sfumato, testo bianco (come nell'esempio) */
+.ot-side-link.active {
+  background: var(--ot-gradient);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(247, 132, 26, 0.28);
+}
+.ot-side-link.active i { color: #fff; }
+
+.ot-side-footer {
+  margin-top: auto;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  color: var(--ot-muted);
+}
+
+/* ------------------------------------------------------------
+   5. BARRA IN ALTO
+   ------------------------------------------------------------ */
+.ot-topbar {
+  position: sticky;                      /* resta in alto scorrendo la pagina */
+  top: 0;
+  z-index: 1020;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: calc(0.75rem + env(safe-area-inset-top)) 1rem 0.75rem;
+  background: var(--ot-panel);
+  border-bottom: 1px solid var(--ot-border);
+}
+@media (min-width: 992px) {
+  .ot-topbar { padding: 1rem 2rem; }
+}
+.ot-page-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+}
+/* Su telefono il titolo della pagina lascia il posto al logo */
+@media (max-width: 991.98px) {
+  .ot-page-title { display: none; }
+}
+.ot-topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
+
+/* Pulsante rotondo con sola icona (es. cambio tema) */
+.ot-round-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ot-tile);
+  color: var(--ot-text);
+  font-size: 1.05rem;
+}
+.ot-round-button:hover { color: var(--ot-brand); }
+
+/* "Pillola" di testo (es. data dei dati) */
+.ot-chip {
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--ot-tile);
+  font-size: 0.8rem;
+  color: var(--ot-muted);
+}
+
+/* ------------------------------------------------------------
+   6. BARRA DI NAVIGAZIONE IN BASSO (telefono/tablet)
+   ------------------------------------------------------------ */
+.ot-tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 1030;
+  display: flex;
+  background: var(--ot-panel);
+  border-top: 1px solid var(--ot-border);
+  padding: 0.35rem 0.35rem calc(0.35rem + env(safe-area-inset-bottom));
+}
+.ot-tabbar-items { display: flex; flex: 1; }
+
+.ot-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;                /* icona sopra, testo sotto */
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.2rem;
+  border-radius: 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--ot-muted);
+  text-decoration: none;
+  background: none;
+  border: 0;
+}
+.ot-tab i { font-size: 1.25rem; }
+.ot-tab.active { color: var(--ot-brand); }
+#nav-more { display: flex; }
+
+/* ------------------------------------------------------------
+   7. AREA DEI WIDGET
+   ------------------------------------------------------------ */
+.ot-main { padding: 1rem 0.75rem 1.5rem; }
+@media (min-width: 992px) {
+  .ot-main { padding: 1.75rem 2rem 2rem; }
+}
+
+/* Griglia: una colonna su telefono, due su schermi larghi.
+   I widget "full" occupano tutta la larghezza. */
+.ot-widgets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+@media (min-width: 992px) {
+  .ot-widgets { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; }
+  .ot-widget-full { grid-column: 1 / -1; }
+}
+
+/* Pannello di un widget: bianco, molto arrotondato */
+.ot-widget {
+  background: var(--ot-panel);
+  border-radius: 1.25rem;
+  box-shadow: var(--ot-shadow);
+  padding: 1.1rem;
+  min-width: 0;
+  /* colonna flessibile: il contenuto può allungarsi fino in fondo al
+     pannello (es. due pannelli affiancati di altezza diversa) */
+  display: flex;
+  flex-direction: column;
+}
+.ot-widget-body { flex: 1; display: flex; flex-direction: column; }
+.ot-grow { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+@media (min-width: 992px) {
+  .ot-widget { padding: 1.4rem; }
+}
+.ot-widget-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.9rem;
+}
+
+/* Widget non ancora scritto: bordo tratteggiato, senza ombra */
+.ot-widget-todo {
+  background: transparent;
+  border: 2px dashed var(--ot-border);
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------
+   8. TESSERE (riquadri grigi dentro i pannelli)
+   ------------------------------------------------------------ */
+.ot-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.9rem;
+}
+.ot-tile {
+  background: var(--ot-tile);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  min-width: 0;
+}
+.ot-tile-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ot-muted);
+}
+.ot-tile-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0.45rem 0 0.35rem;
+  /* tabular-nums: cifre tutte della stessa larghezza (i numeri non "ballano") */
+  font-variant-numeric: tabular-nums;
+}
+.ot-tile-sub { font-size: 0.8rem; color: var(--ot-muted); }
+
+/* Tessera principale: arancione sfumato, testo bianco */
+.ot-tile-hero {
+  background: var(--ot-gradient);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(247, 132, 26, 0.25);
+}
+.ot-tile-hero .ot-tile-label,
+.ot-tile-hero .ot-tile-sub { color: rgba(255, 255, 255, 0.88); }
+.ot-tile-hero .ot-tile-value { font-size: 2.1rem; }
+
+/* ------------------------------------------------------------
+   9. BADGE (pillole colorate: segnali, variazioni, ruoli)
+   ------------------------------------------------------------ */
+.ot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ot-badge-buy { background: var(--ot-buy-soft); color: var(--ot-buy); }
+.ot-badge-hold { background: var(--ot-hold-soft); color: var(--ot-hold); }
+.ot-badge-sell { background: var(--ot-sell-soft); color: var(--ot-sell); }
+.ot-badge-brand { background: var(--ot-brand-soft); color: var(--ot-brand-text); }
+.ot-tile-hero .ot-badge { background: rgba(255, 255, 255, 0.22); color: #fff; }
+
+/* Segnale grande (BUY / HOLD / SELL) */
+.ot-signal {
+  display: inline-block;
+  min-width: 4.2rem;
+  text-align: center;
+  padding: 0.3rem 0.8rem;
+  border-radius: 0.6rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+}
+.ot-signal-buy { background: var(--ot-buy); color: #fff; }
+.ot-signal-hold { background: var(--ot-hold-soft); color: var(--ot-hold); }
+.ot-signal-sell { background: var(--ot-sell); color: #fff; }
+
+/* ------------------------------------------------------------
+   10. ORIZZONTI (widget horizonCards)
+   ------------------------------------------------------------ */
+.ot-horizons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.9rem;
+}
+.ot-horizon-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.ot-horizon-name { font-size: 1.05rem; font-weight: 800; }
+
+/* Barra della convenienza da −100 a +100, con lo zero al centro */
+.ot-meter {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ot-border);
+  margin: 0.4rem 0 0.2rem;
+}
+.ot-meter-zero {
+  position: absolute;
+  left: 50%; top: -3px; bottom: -3px;
+  width: 2px;
+  background: var(--ot-muted);
+  opacity: 0.5;
+}
+.ot-meter-fill { position: absolute; top: 0; bottom: 0; border-radius: 999px; }
+
+.ot-kv {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+}
+.ot-kv b { font-variant-numeric: tabular-nums; }
+
+/* Dettaglio indicatori espandibile (<details>) */
+.ot-details { margin-top: 0.8rem; }
+.ot-details summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ot-brand-text);
+}
+.ot-indicator-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--ot-border);
+  font-size: 0.82rem;
+}
+.ot-indicator-row:last-child { border-bottom: 0; }
+
+/* ------------------------------------------------------------
+   11. ELENCHI (report, fonti): righe su fondo grigio
+   ------------------------------------------------------------ */
+.ot-rows { display: flex; flex-direction: column; gap: 0.45rem; }
+.ot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--ot-tile);
+  border-radius: 0.7rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.88rem;
+}
+.ot-row-group {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ot-muted);
+  margin: 0.6rem 0 0.1rem;
+}
+.ot-row-group:first-child { margin-top: 0; }
+
+/* ------------------------------------------------------------
+   12. LETTURA COMBINATA (widget combinedReading)
+   ------------------------------------------------------------ */
+.ot-reading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--ot-brand-soft);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+}
+.ot-reading-icon {
+  flex: none;
+  width: 2.6rem; height: 2.6rem;
+  border-radius: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ot-gradient);
+  color: #fff;
+  font-size: 1.2rem;
+}
+.ot-reading-text { font-size: 1.05rem; font-weight: 700; }
+
+/* ------------------------------------------------------------
+   13. TESTI RICORRENTI E GRAFICI
+   ------------------------------------------------------------ */
+.ot-muted { color: var(--ot-muted); }
+.ot-strong { font-weight: 700; }
+.ot-note-warning {
+  font-size: 0.85rem;
+  color: var(--ot-brand-text);
+  background: var(--ot-brand-soft);
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.7rem;
+}
+.ot-chart { width: 100%; height: 240px; }
+
+/* ------------------------------------------------------------
+   14. SEMICERCHI E MINI-GRAFICI (dashboard)
+   ------------------------------------------------------------ */
+.ot-semicircle { height: 170px; }
+.ot-sparkline { height: 90px; margin-top: 0.75rem; }
+.ot-chart-tall { height: 460px; }
+@media (max-width: 575.98px) {
+  .ot-chart-tall { height: 400px; }
+}
+
+/* ------------------------------------------------------------
+   15. CARD DEGLI ORIZZONTI
+   ------------------------------------------------------------ */
+.ot-hcard {
+  background: var(--ot-tile);
+  border-radius: 1.1rem;
+  overflow: hidden;                      /* l'intestazione colorata segue gli angoli */
+  display: flex;
+  flex-direction: column;
+}
+/* Intestazione colorata secondo il segnale */
+.ot-hcard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  color: #fff;
+}
+.ot-hcard-buy { background: linear-gradient(135deg, #168A5A 0%, #2DBE80 100%); }
+.ot-hcard-sell { background: linear-gradient(135deg, #C9363B 0%, #F06A6E 100%); }
+.ot-hcard-hold { background: linear-gradient(135deg, #5B6170 0%, #8A909E 100%); }
+.ot-hcard-name { font-size: 1.15rem; font-weight: 800; }
+.ot-hcard-role {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  margin-left: 0.35rem;
+  vertical-align: 0.15em;
+}
+.ot-hcard-period { font-size: 0.78rem; opacity: 0.9; margin-top: 0.15rem; }
+.ot-hcard-signal { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.04em; }
+.ot-hcard-body { padding: 1rem 1.1rem 1.1rem; }
+.ot-hcard-sentence { font-size: 1rem; font-weight: 700; }
+
+/* Pallini degli indicatori */
+.ot-dots { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
+.ot-dot { width: 0.85rem; height: 0.85rem; border-radius: 50%; display: inline-block; }
+.ot-dot-buy { background: var(--ot-buy); }
+.ot-dot-sell { background: var(--ot-sell); }
+.ot-dot-hold { background: var(--ot-hold); opacity: 0.55; }
+
+/* Testo descrittivo sotto i grafici della pagina Grafici */
+.ot-chart-note { font-size: 0.82rem; color: var(--ot-muted); margin-top: 0.5rem; }
+
+/* ------------------------------------------------------------
+   16. RIQUADRO DEL PREZZO (dashboard): tessera + grafico
+   ------------------------------------------------------------ */
+.ot-hero { display: flex; flex-direction: column; gap: 1rem; }
+.ot-hero-chart { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ot-price-area { height: 240px; }
+@media (min-width: 768px) {
+  .ot-hero { flex-direction: row; }
+  .ot-hero-price { width: 300px; flex: none; }
+  .ot-price-area { flex: 1; height: auto; min-height: 240px; }
+}
+/* Pulsanti del periodo (3M, 1A, ...) */
+.ot-ranges { display: flex; gap: 0.35rem; justify-content: flex-end; margin-bottom: 0.25rem; }
+.ot-range {
+  border: 0;
+  background: var(--ot-tile);
+  color: var(--ot-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+}
+.ot-range.active { background: var(--ot-brand); color: #fff; }
+
+/* Lettura combinata su una riga: mercato | se compri | se possiedi */
+.ot-reading-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; }
+@media (min-width: 768px) {
+  .ot-reading-row { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); }
+}
+.ot-reading-row .ot-tile { display: flex; flex-direction: column; justify-content: center; }
