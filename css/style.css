@@ -582,3 +582,67 @@ body {
   .ot-reading-row { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); }
 }
 .ot-reading-row .ot-tile { display: flex; flex-direction: column; justify-content: center; }
+
+/* ------------------------------------------------------------
+   17. AVVISI GLOBALI (banner in alto)
+   ------------------------------------------------------------ */
+#banners { padding: 0 0.75rem; }
+@media (min-width: 992px) { #banners { padding: 0 2rem; } }
+.ot-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.ot-banner-danger { background: var(--ot-sell-soft); color: var(--ot-sell); }
+.ot-banner-warning { background: var(--ot-brand-soft); color: var(--ot-brand-text); }
+.ot-banner-info { background: var(--ot-buy-soft); color: var(--ot-buy); }
+/* Pulsante/collegamento dell'avviso: pieno, del colore dell'avviso */
+.ot-banner-action {
+  margin-left: auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.25rem 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff !important;
+}
+.ot-banner-danger .ot-banner-action { background: var(--ot-sell); }
+.ot-banner-warning .ot-banner-action { background: var(--ot-brand); }
+.ot-banner-info .ot-banner-action { background: var(--ot-buy); }
+
+/* La pillola della data non si mostra finché è vuota (dati non ancora letti) */
+.ot-chip:empty { display: none !important; }
+
+/* ------------------------------------------------------------
+   18. MODULI E PULSANTI (Impostazioni)
+   ------------------------------------------------------------ */
+.ot-form .form-control {
+  background: var(--ot-tile);
+  border: 1px solid var(--ot-border);
+  border-radius: 0.7rem;
+  color: var(--ot-text);
+}
+.ot-form .form-control:focus { border-color: var(--ot-brand); box-shadow: 0 0 0 3px rgba(247, 132, 26, 0.2); }
+.ot-btn-brand {
+  background: var(--ot-gradient);
+  color: #fff;
+  border: 0;
+  border-radius: 0.7rem;
+  font-weight: 700;
+}
+.ot-btn-brand:hover { color: #fff; filter: brightness(1.05); }
+.ot-btn-plain {
+  background: var(--ot-tile);
+  color: var(--ot-text);
+  border: 1px solid var(--ot-border);
+  border-radius: 0.7rem;
+  font-weight: 600;
+}
+.ot-steps { padding-left: 1.2rem; font-size: 0.9rem; }
+.ot-steps li { margin-bottom: 0.45rem; }

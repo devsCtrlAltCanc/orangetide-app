@@ -6,9 +6,10 @@
 //   sorgente scelta in config.js e ne conserva una copia sul dispositivo:
 //   se la rete o GitHub non rispondono si mostrano gli ultimi dati salvati.
 //
-// Sorgenti:
+// Sorgenti (config.js: dataSource):
 //   "local"  -> cartella output/ di orangetide-core tramite il server locale
-//   "github" -> API di GitHub con token (passo 2 della Fase 4)
+//   "github" -> API di GitHub con il token salvato in Impostazioni (auth.js)
+//   "auto"   -> "local" se l'app gira sul PC (localhost), altrimenti "github"
 //
 // Usato da: app.js (carica i file richiesti dai widget della pagina).
 //
@@ -45,18 +46,31 @@ OT.data = (function () {
   // ============================================================
   // SEZIONE 1 — INDIRIZZO DI UN FILE
   // ============================================================
+  /** Sorgente effettiva dei dati: "local" o "github" (risolve "auto"). */
+  function source() {
+    if (OT_CONFIG.dataSource !== "auto") return OT_CONFIG.dataSource;
+    const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    return isLocalhost ? "local" : "github";
+  }
+
   /**
-   * Indirizzo da cui scaricare un file, secondo la sorgente configurata.
+   * Indirizzo di un file nell'API di GitHub ("contents" del repository).
+   * @param {string} fileName  es. "meta.json"
+   */
+  function githubUrl(fileName) {
+    const gh = OT_CONFIG.github;
+    return `${gh.apiBase}/repos/${gh.owner}/${gh.repo}/contents/${gh.path}/${fileName}?ref=${gh.branch}`;
+  }
+
+  /**
+   * Indirizzo da cui scaricare un file, secondo la sorgente.
    * @param {string} name  nome logico: "latest", "history", "backtest", "meta"
    * @returns {string} l'URL
    */
   function fileUrl(name) {
     const fileName = OT_CONFIG.files[name];
-    if (OT_CONFIG.dataSource === "local") {
-      return OT_CONFIG.local.basePath + fileName;
-    }
-    const gh = OT_CONFIG.github;
-    return `${gh.apiBase}/repos/${gh.owner}/${gh.repo}/contents/${gh.path}/${fileName}?ref=${gh.branch}`;
+    if (source() === "local") return OT_CONFIG.local.basePath + fileName;
+    return githubUrl(fileName);
   }
 
   // ============================================================
@@ -68,17 +82,24 @@ OT.data = (function () {
    * @returns {Promise<Response>} la risposta (solo se lo stato è 200–299)
    */
   async function download(url) {
-    if (OT_CONFIG.dataSource !== "local") {
-      // La lettura da GitHub con token arriva nel passo 2.
-      throw new Error("Sorgente GitHub non ancora disponibile");
-    }
     // cache: "no-store" = non usare la cache HTTP del browser: si vuole
     // sempre la versione più recente (la copia di riserva la gestiamo noi).
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
+    if (source() === "local") {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response;
     }
-    return response;
+
+    // GitHub: serve il token salvato in Impostazioni.
+    const token = OT.auth.getToken();
+    if (!token) throw new Error(OT_CONFIG.texts.token.missing);
+    const response = await fetch(url, { headers: OT.auth.headers(token), cache: "no-store" });
+    if (response.ok) {
+      OT.auth.markAccepted();
+      return response;
+    }
+    if (OT.auth.isRejection(response)) OT.auth.markRejected();
+    throw new Error(OT.auth.describeError(response));
   }
 
   // ============================================================
@@ -165,5 +186,12 @@ OT.data = (function () {
   }
 
   // Ciò che è visibile da fuori: OT.data.load(...), OT.data.reset().
-  return { load: load, reset: reset, fileUrl: fileUrl };
+  /** Cancella le copie dei dati salvate sul dispositivo. */
+  async function clearCopies() {
+    reset();
+    if (hasCache()) await caches.delete(CACHE_NAME);
+  }
+
+  return { load: load, reset: reset, fileUrl: fileUrl, githubUrl: githubUrl, source: source,
+           clearCopies: clearCopies };
 })();

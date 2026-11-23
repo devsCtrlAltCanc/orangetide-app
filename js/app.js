@@ -9,7 +9,9 @@
 //     suoi widget nell'ordine indicato in config.js;
 //   - tema chiaro / scuro / automatico;
 //   - funzioni di formattazione comuni (numeri, date, percentuali);
-//   - registrazione del service worker (app installabile e offline).
+//   - avvisi globali in alto (token, dati vecchi, nuova versione: SPEC 11.6);
+//   - registrazione del service worker (app installabile e offline) e
+//     avviso "Nuova versione disponibile — Aggiorna" (SPEC 6.2).
 //
 // Ordine di caricamento in index.html: config.js, data.js, app.js, poi i
 // file dei widget (dashboard.js, ...), che usano OT.registerWidget.
@@ -243,12 +245,77 @@ OT.app.showPage = function (pageId) {
   main.innerHTML = `<div class="ot-widgets"></div>`;
   const container = main.querySelector(".ot-widgets");
 
+  const rendering = [];
   for (const widgetId of page.widgets) {
     const card = OT.app.createWidgetCard(widgetId);
     container.appendChild(card);
-    OT.app.renderWidget(widgetId, card);
+    rendering.push(OT.app.renderWidget(widgetId, card));
   }
   window.scrollTo(0, 0);
+  // Gli avvisi si aggiornano quando i widget hanno finito di caricare i dati
+  // (es. un 401 di GitHub scoperto durante il caricamento).
+  Promise.all(rendering).then(OT.app.renderBanners);
+};
+
+/** Riscarica i dati e ridisegna la pagina corrente (dopo un cambio di token). */
+OT.app.refresh = function () {
+  OT.data.reset();
+  OT.app.showDataDate();
+  OT.app.showPage(OT.app.currentPageId());
+};
+
+// ============================================================
+// SEZIONE 5b — AVVISI GLOBALI (SPEC 11.6)
+// ============================================================
+/**
+ * Disegna gli avvisi in alto:
+ *   - token mancante / rifiutato / scaduto / in scadenza (solo con dati da GitHub);
+ *   - dati vecchi (ultimo aggiornamento oltre alerts.staleDataHours);
+ *   - nuova versione dell'app pronta.
+ */
+OT.app.renderBanners = async function () {
+  const b = OT_CONFIG.texts.banners;
+  const banners = [];
+  // Collegamento a Impostazioni (non serve se si è già lì).
+  const settingsLink = OT.app.currentPageId() === "impostazioni" ? ""
+    : `<a href="#impostazioni" class="ot-banner-action">${b.goToSettings}</a>`;
+
+  if (OT.data.source() === "github") {
+    const state = OT.auth.state();
+    const S = OT.auth.STATE;
+    if (state === S.MISSING) banners.push({ level: "warning", text: b.tokenMissing, action: settingsLink });
+    if (state === S.REJECTED) banners.push({ level: "danger", text: b.tokenRejected, action: settingsLink });
+    if (state === S.EXPIRED) banners.push({ level: "danger", text: b.tokenExpired, action: settingsLink });
+    if (state === S.EXPIRING) {
+      banners.push({ level: "warning", text: b.tokenExpiring.replace("{date}", OT.fmt.date(OT.auth.getExpiry())),
+        action: settingsLink });
+    }
+  }
+
+  try {
+    const meta = await OT.data.load("meta");
+    const hours = (Date.now() - new Date(meta.data.generated_at)) / 3600000;   // ms -> ore
+    if (hours > OT_CONFIG.alerts.staleDataHours) {
+      banners.push({ level: "warning", text: b.staleData.replace("{date}", OT.fmt.dateTime(meta.data.generated_at)) });
+    }
+  } catch (error) {
+    // Nessun dato: lo dicono già i widget (e l'eventuale avviso sul token).
+  }
+
+  if (OT.app.waitingWorker) {
+    banners.push({ level: "info", text: b.newVersion,
+      action: `<button type="button" class="ot-banner-action" id="ot-update-button">${b.update}</button>` });
+  }
+
+  const box = document.getElementById("banners");
+  box.innerHTML = banners.map(function (x) {
+    const icon = { danger: "bi-exclamation-octagon", warning: "bi-exclamation-triangle", info: "bi-stars" }[x.level];
+    return `<div class="ot-banner ot-banner-${x.level}"><i class="bi ${icon}"></i>
+      <span>${OT.escape(x.text)}</span>${x.action || ""}</div>`;
+  }).join("");
+
+  const update = document.getElementById("ot-update-button");
+  if (update) update.addEventListener("click", OT.app.applyUpdate);
 };
 
 /**
@@ -306,8 +373,12 @@ OT.app.currentPageId = function () {
 // ============================================================
 /**
  * Registra il service worker: il file che tiene in memoria l'interfaccia
- * per farla funzionare anche senza rete. L'avviso "nuova versione" arriva
- * nel passo 2 della Fase 4.
+ * per farla funzionare anche senza rete, e controlla se c'è una versione
+ * nuova dell'app (SPEC 6.2):
+ *   - il browser scarica service-worker.js; se è cambiato (nuova VERSION)
+ *     installa la nuova versione, che resta "in attesa";
+ *   - config.autoUpdate true  -> la si attiva subito e la pagina si ricarica;
+ *     config.autoUpdate false -> avviso "Nuova versione disponibile — Aggiorna".
  */
 OT.app.registerServiceWorker = function () {
   if (!("serviceWorker" in navigator)) return;
@@ -319,9 +390,45 @@ OT.app.registerServiceWorker = function () {
     });
     return;
   }
-  navigator.serviceWorker.register("service-worker.js").catch(function (error) {
+  // Quando la nuova versione prende il controllo, si ricarica la pagina una volta.
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+
+  navigator.serviceWorker.register("service-worker.js").then(function (registration) {
+    // Versione già scaricata e in attesa (es. da un'apertura precedente).
+    if (registration.waiting && navigator.serviceWorker.controller) OT.app.onUpdateReady(registration.waiting);
+    // Versione trovata adesso: si aspetta che finisca di installarsi.
+    registration.addEventListener("updatefound", function () {
+      const worker = registration.installing;
+      worker.addEventListener("statechange", function () {
+        // "controller" esiste solo se c'era già una versione: al primo avvio non si avvisa.
+        if (worker.state === "installed" && navigator.serviceWorker.controller) OT.app.onUpdateReady(worker);
+      });
+    });
+    registration.update();   // controlla subito se c'è una versione nuova
+  }).catch(function (error) {
     console.warn("Service worker non registrato:", error);
   });
+};
+
+/**
+ * Una nuova versione è pronta: la si attiva subito (autoUpdate) oppure si
+ * mostra l'avviso con il pulsante "Aggiorna".
+ * @param {ServiceWorker} worker  la nuova versione in attesa
+ */
+OT.app.onUpdateReady = function (worker) {
+  OT.app.waitingWorker = worker;
+  if (OT_CONFIG.autoUpdate) OT.app.applyUpdate();
+  else OT.app.renderBanners();
+};
+
+/** Attiva la nuova versione (la pagina si ricarica da sola: vedi "controllerchange"). */
+OT.app.applyUpdate = function () {
+  if (OT.app.waitingWorker) OT.app.waitingWorker.postMessage("skipWaiting");
 };
 
 // ============================================================

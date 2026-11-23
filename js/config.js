@@ -40,8 +40,10 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // "local"  = cartella output/ di orangetide-core sullo stesso PC, servita
   //            dal server web locale (vedi README);
-  // "github" = API di GitHub con token (repository privato).
-  dataSource: "local",
+  // "github" = API di GitHub con token (repository privato);
+  // "auto"   = "local" se l'app è aperta da localhost, altrimenti "github"
+  //            (così la stessa versione funziona sul PC e su GitHub Pages).
+  dataSource: "auto",
 
   local: {
     // Percorso della cartella output/ relativo alla pagina dell'app:
@@ -114,7 +116,7 @@ window.OT_CONFIG = {
     },
     {
       id: "impostazioni", title: "Impostazioni", icon: "bi-gear", nav: "more",
-      widgets: ["tokenSettings", "preferences"],
+      widgets: ["tokenSettings", "preferences", "tokenGuide"],
     },
   ],
 
@@ -235,6 +237,37 @@ window.OT_CONFIG = {
     readingHold: "Se possiedi BTC",
     fearGreedTitle: "Fear & Greed",
     lastDays: "ultimi giorni",
+
+    // Token GitHub (auth.js, settings.js) e avvisi globali (app.js).
+    token: {
+      missing: "Token GitHub non inserito: aggiungilo in Impostazioni",
+      verifyOk: "Token valido: dati letti correttamente",
+      networkError: "Rete non disponibile o GitHub non raggiungibile",
+      rateLimited: "Troppe richieste a GitHub: riprova tra qualche minuto",
+      error401: "Token non valido o scaduto",
+      error403: "Token senza permesso di lettura su orangetide-core",
+      error404: "Dati non trovati: il token non ha accesso al repository orangetide-core, o il file manca",
+      errorOther: "Errore di GitHub",
+      saved: "Token salvato su questo dispositivo",
+      removed: "Token rimosso da questo dispositivo",
+      notNeededLocal: "Stai usando l'app sul PC in locale: i dati si leggono dalla cartella output/ e il token non serve. Serve sull'app pubblicata (GitHub Pages), su ogni dispositivo.",
+      stateNames: {
+        missing: "Non inserito", rejected: "Rifiutato da GitHub", expired: "Scaduto",
+        expiring: "In scadenza", ok: "Valido",
+      },
+      createUrl: "https://github.com/settings/personal-access-tokens/new",
+      listUrl: "https://github.com/settings/personal-access-tokens",
+    },
+    banners: {
+      tokenMissing: "Per leggere i dati serve il token GitHub.",
+      tokenRejected: "Token scaduto o non valido: aggiornalo in Impostazioni.",
+      tokenExpired: "Il token è scaduto: rigeneralo su GitHub e aggiornalo in Impostazioni.",
+      tokenExpiring: "Il token scade il {date}: rigeneralo su GitHub e aggiornalo in Impostazioni.",
+      goToSettings: "Vai a Impostazioni",
+      staleData: "Dati vecchi: ultimo aggiornamento {date}.",
+      newVersion: "Nuova versione dell'app disponibile.",
+      update: "Aggiorna",
+    },
 
     // Nomi leggibili delle fonti (chiave = "source" in meta.json).
     sourceNames: {
