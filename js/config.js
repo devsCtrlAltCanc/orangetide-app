@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.6.0",
+  version: "0.6.1",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".
@@ -117,16 +117,16 @@ window.OT_CONFIG = {
       widgets: ["priceChart", "drawdownChart"],
     },
     {
-      id: "backtest", title: "Backtest", icon: "bi-clipboard-data", nav: "more",
-      widgets: ["backtestTables"],
-    },
-    {
       id: "cicli", title: "Cicli", icon: "bi-arrow-repeat", nav: "main",
       widgets: ["halvingRoiChart", "peakRoiChart", "cycleTable"],
     },
     {
       id: "grafici", title: "Grafici", icon: "bi-bar-chart-line", nav: "main",
       widgets: ["riskChart", "fearGreedChart", "mvrvChart", "cvddChart", "etfFlowsChart", "fundingChart"],
+    },
+    {
+      id: "backtest", title: "Backtest", icon: "bi-clipboard-data", nav: "more",
+      widgets: ["backtestTables"],
     },
     {
       id: "info", title: "Info", icon: "bi-info-circle", nav: "more",
