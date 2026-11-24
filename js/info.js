@@ -3,13 +3,13 @@
 // ============================================================
 // Widget definiti qui:
 //   sourcesStatus   stato di ogni fonte dati (da meta.json)
-//   appInfo         versione dell'app e dei dati, sorgente, ultimo aggiornamento
+//   appInfo         versione dell'app e dei dati, sorgente, ultimo aggiornamento,
+//                   minuti di GitHub Actions del mese (stima, SPEC 11.4)
 //   methodInfo      spiegazione sintetica del metodo (SPEC 4) e degli indicatori
 //   credits         fonti dei dati (con licenza) e librerie usate
 //
-// L'avvertenza "non è un consiglio finanziario" non ha un riquadro proprio
-// (decisione dell'utente del 2026-11-24): resta solo la riga in fondo al
-// menu laterale (index.html).
+// Nessun testo di avvertenza "non è un consiglio finanziario" in tutta l'app
+// (decisione dell'utente del 2026-11-24, SPEC 11.4).
 //
 // Legge: meta.json (fonti, versione dello schema, parametri del metodo),
 //        latest.json (orizzonti, ruoli e indicatori attivi).
@@ -75,12 +75,37 @@ OT.registerWidget("appInfo", {
       [t.dataDate, OT.fmt.date(meta.data_date)],
       [t.lastUpdate, OT.fmt.dateTime(meta.generated_at)],
       [t.overall, `<span class="ot-badge ot-badge-${status.badge}">${OT.escape(status.text)}</span>`],
+      [t.actions, `<span id="ot-actions-usage" class="ot-muted">${OT_CONFIG.texts.loading}</span>`],
     ];
     body.innerHTML = `<div class="ot-rows">` + items.map(function (item) {
-      return `<div class="ot-row"><span class="ot-muted">${item[0]}</span><b>${item[1]}</b></div>`;
-    }).join("") + `</div>`;
+      return `<div class="ot-row"><span class="ot-muted">${item[0]}</span><b class="text-end">${item[1]}</b></div>`;
+    }).join("") + `</div>
+      <div class="ot-chart-note mt-2">${OT.escape(t.actionsNote)}</div>`;
+    showActionsUsage(body.querySelector("#ot-actions-usage"));
   },
 });
+
+/**
+ * Riempie la riga "GitHub Actions questo mese" (la richiesta a GitHub
+ * arriva dopo il resto del riquadro, che intanto è già visibile).
+ * @param {HTMLElement} cell  elemento in cui scrivere
+ */
+async function showActionsUsage(cell) {
+  const t = OT_CONFIG.texts.info;
+  try {
+    const usage = await OT.actions.monthUsage();
+    cell.className = "";
+    cell.textContent = fillPlaceholders(t.actionsUsage, {
+      runs: OT.fmt.number(usage.runs, 0),
+      minutes: OT.fmt.number(usage.minutes, 0),
+      // useGrouping "always" = punto delle migliaia anche a 4 cifre (2.000, non 2000)
+      included: OT_CONFIG.refresh.includedMinutes.toLocaleString(OT_CONFIG.locale, { useGrouping: "always" }),
+    });
+  } catch (error) {
+    // Senza token / permesso / dati locali: lo si dice in grigio.
+    cell.textContent = error.kind === "local" ? t.actionsLocal : error.message;
+  }
+}
 
 // ============================================================
 // WIDGET methodInfo — COME FUNZIONA (SPEC 4, 16.1, 5)

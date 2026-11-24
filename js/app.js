@@ -267,8 +267,8 @@ OT.app.updateThemeButton = function () {
  * (meta.json: generated_at) e a che giorno arrivano i dati.
  *   PC:       "Dati al 22/11/2026 · aggiornati 24/11, 04:19"
  *   tablet:   "aggiornati 24/11, 04:19" (la parte "Dati al" è nascosta)
- *   telefono: "24/11, 04:19" con l'icona di aggiornamento (spazio per logo
- *             e pulsante del tema anche sugli schermi più stretti)
+ *   telefono: solo "24/11, 04:19", senza icona (spazio per logo, pulsante
+ *             "Aggiorna dati" e pulsante del tema anche sugli schermi più stretti)
  * Le classi d-none / d-sm-inline / d-md-inline di Bootstrap nascondono o
  * mostrano un pezzo di testo secondo la larghezza dello schermo.
  * Se l'aggiornamento è più vecchio di alerts.staleDataHours la pillola
@@ -281,7 +281,7 @@ OT.app.showDataDate = async function () {
     const updated = new Date(meta.generated_at);
     const when = updated.toLocaleString(OT_CONFIG.locale,
       { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-    chip.innerHTML = `<i class="bi bi-arrow-repeat"></i>
+    chip.innerHTML = `<i class="bi bi-clock-history d-none d-sm-inline"></i>
       <span class="d-none d-md-inline">${OT_CONFIG.texts.dataAsOf} ${OT.fmt.date(meta.data_date)} ·</span>
       <span><span class="d-none d-sm-inline">${OT_CONFIG.texts.updatedAt} </span>${when}</span>`;
     chip.title = `${OT_CONFIG.texts.lastUpdate}: ${OT.fmt.dateTime(meta.generated_at)}`;
@@ -529,4 +529,5 @@ document.addEventListener("DOMContentLoaded", function () {
   OT.app.showPage(OT.app.currentPageId());
 
   OT.app.registerServiceWorker();
+  OT.actions.init();     // pulsante "Aggiorna dati" (actions.js)
 });

@@ -4,7 +4,7 @@ Interfaccia di OrangeTide: una **PWA** (app web installabile) che mostra i
 dati calcolati da `orangetide-core`. Questo repository è **pubblico** e non
 contiene dati né token (SPEC 6).
 
-> **Stato (v0.5.1):** Fase 4 completata. Pronte tutte le pagine: Dashboard,
+> **Stato (v0.6.0):** Fase 4 completata. Pronte tutte le pagine: Dashboard,
 > Storico, Backtest, Cicli, Grafici, Info, Impostazioni (token GitHub) e
 > avvisi. Pubblicata su GitHub Pages, installata e provata su PC (Edge) e
 > iPhone (Safari) il 2026-11-24.
@@ -51,8 +51,16 @@ salvato solo sul dispositivo (SPEC 6.1).
 2. **Token name**: es. "OrangeTide 2026". **Expiration**: la durata preferita
    (al massimo un anno). **Annotare la data di scadenza.**
 3. **Repository access** → *Only select repositories* → solo **orangeTide-core**.
-4. **Permissions** → *Repository permissions* → **Contents: Read-only**.
-   Nessun altro permesso.
+4. **Permissions** → *Repository permissions*:
+   - **Contents: Read-only** — per leggere i dati;
+   - **Actions: Read and write** — per il pulsante **↻ Aggiorna dati** e il
+     contatore dei minuti di Actions nella pagina Info (SPEC 6.1, 11.7).
+     Permette di avviare e annullare l'aggiornamento, non di modificare
+     codice o dati.
+
+   Nessun altro permesso. Per aggiungere un permesso a un token già creato:
+   aprirlo su GitHub → *Edit* → cambiare i permessi → salvare (il token resta
+   lo stesso, non va reinserito nell'app).
 5. **Generate token** e copiarlo (inizia con `github_pat_`).
 6. Conservarlo in un gestore di password (es. Portachiavi iCloud): servirà
    per inserirlo su ogni dispositivo.
@@ -71,6 +79,14 @@ Nell'app: **Altro → Impostazioni** → incollare token e data di scadenza →
 
 Su iPhone va fatto **dentro l'app installata**, non in Safari: le due hanno
 memorie separate.
+
+### Aggiornare i dati dall'app
+
+Il pulsante **↻** in alto, accanto alla data dell'ultimo aggiornamento, avvia
+su GitHub lo stesso aggiornamento della notte (circa 2–4 minuti). Sotto la
+barra compare lo stato ("in corso…", poi "completato" o "terminato con
+errori"); alla fine l'app ricarica i dati da sola. Se un aggiornamento è già
+in corso (anche quello notturno) non ne parte un altro: l'app segue quello.
 
 ### Rinnovo del token
 
@@ -93,6 +109,8 @@ memorie separate.
 | `css/style.css` | colori (tema chiaro e scuro) e stile |
 | `js/config.js` | **tutta** la configurazione: sorgente dati, versione, pagine, colori, testi |
 | `js/data.js` | caricamento dei JSON e copia di riserva sul dispositivo |
+| `js/auth.js` | token GitHub: salvataggio, scadenza, avvisi |
+| `js/actions.js` | pulsante "Aggiorna dati" e minuti di GitHub Actions |
 | `js/app.js` | avvio, navigazione, tema, formattazione, registro dei widget |
 | `js/dashboard.js`, `js/storico.js`, `js/backtest.js`, `js/cicli.js`, `js/graphs.js`, `js/info.js`, `js/settings.js` | i widget di ogni pagina |
 | `manifest.json` | nome, icone e colori dell'app installata |

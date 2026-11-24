@@ -2,8 +2,9 @@
 // js/auth.js — TOKEN DI ACCESSO A GITHUB (SPEC 6.1)
 // ============================================================
 // A cosa serve:
-//   Gestisce il token GitHub (fine-grained, sola lettura) con cui l'app
-//   legge i JSON dal repository privato orangetide-core:
+//   Gestisce il token GitHub (fine-grained) con cui l'app legge i JSON dal
+//   repository privato orangetide-core (permesso Contents: sola lettura) e
+//   avvia l'aggiornamento dei dati (permesso Actions, usato da actions.js):
 //     - lo salva SOLO nella memoria locale di questo dispositivo (localStorage);
 //     - ricorda la data di scadenza, inserita a mano in Impostazioni;
 //     - tiene traccia degli errori 401/403 (token scaduto o non valido);
@@ -119,11 +120,13 @@ OT.auth = (function () {
    * "application/vnd.github.raw+json" = restituisci il contenuto del file
    * così com'è (senza la codifica base64 delle risposte standard).
    * @param {string} token
+   * @param {string} [accept]  formato di risposta diverso (es. per le API di
+   *                           Actions, in actions.js); se manca: file grezzo
    */
-  function headers(token) {
+  function headers(token, accept) {
     return {
       Authorization: "Bearer " + token,
-      Accept: "application/vnd.github.raw+json",
+      Accept: accept || "application/vnd.github.raw+json",
       "X-GitHub-Api-Version": "2022-11-28",
     };
   }

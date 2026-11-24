@@ -163,7 +163,7 @@ OT.registerWidget("tokenGuide", {
         <li>Apri <a href="${t.createUrl}" target="_blank" rel="noopener">GitHub → Fine-grained tokens → Generate new token</a> (accedi con l'account <b>${OT.escape(gh.owner)}</b>).</li>
         <li><b>Token name</b>: per esempio "OrangeTide ${new Date().getFullYear()}". <b>Expiration</b>: la durata che preferisci (al massimo un anno).</li>
         <li><b>Repository access</b> → <i>Only select repositories</i> → scegli solo <b>${OT.escape(gh.repo)}</b>.</li>
-        <li><b>Permissions</b> → <i>Repository permissions</i> → <b>Contents: Read-only</b>. Nessun altro permesso.</li>
+        <li><b>Permissions</b> → <i>Repository permissions</i> → <b>Contents: Read-only</b> (per leggere i dati) e <b>Actions: Read and write</b> (per il pulsante <i>Aggiorna dati</i> e il contatore dei minuti in Info). Nessun altro permesso.</li>
         <li>Premi <b>Generate token</b>, copia il token (inizia con <code>github_pat_</code>) e annota la data di scadenza mostrata.</li>
         <li>Incollalo qui sopra con la data e premi <b>Verifica e salva</b>. Su iPhone fallo <b>dentro l'app installata</b>: ha una memoria separata da Safari.</li>
         <li>Conservalo in un gestore di password (es. Portachiavi iCloud) per reinserirlo sugli altri dispositivi.</li>
@@ -172,6 +172,10 @@ OT.registerWidget("tokenGuide", {
         <b>Rinnovo</b>: circa 15 giorni prima della scadenza l'app mostra un avviso. Su
         <a href="${t.listUrl}" target="_blank" rel="noopener">GitHub → Fine-grained tokens</a> apri il token → <i>Regenerate token</i>,
         poi incolla il nuovo qui, su ogni dispositivo. Se cancelli i dati del browser o disinstalli l'app, il token va reinserito.
+      </div>
+      <div class="small ot-muted mt-2">
+        <b>Aggiungere un permesso a un token esistente</b> (es. Actions): sulla stessa pagina apri il token → <i>Edit</i>,
+        cambia i permessi e salva. Il token resta lo stesso: non serve reinserirlo nell'app.
       </div>`;
   },
 });

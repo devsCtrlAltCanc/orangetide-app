@@ -16,7 +16,7 @@
 //   dell'interfaccia e cancella quella vecchia.
 // ============================================================
 
-const VERSION = "0.5.1";
+const VERSION = "0.6.0";
 const CACHE_NAME = "ot-app-" + VERSION;
 
 // File dell'interfaccia salvati subito all'installazione.
@@ -27,6 +27,7 @@ const APP_FILES = [
   "js/config.js",
   "js/auth.js",
   "js/data.js",
+  "js/actions.js",
   "js/app.js",
   "js/charts.js",
   "js/dashboard.js",

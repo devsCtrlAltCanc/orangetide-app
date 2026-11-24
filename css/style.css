@@ -190,14 +190,6 @@ body {
   .ot-page-title { display: none; }
 }
 .ot-topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
-/* Telefono: spazi più stretti, così logo, pillola dell'aggiornamento e
-   pulsante del tema stanno su una riga anche su schermi da 360–390 px */
-@media (max-width: 575.98px) {
-  .ot-topbar { gap: 0.5rem; padding-left: 0.75rem; padding-right: 0.75rem; }
-  .ot-topbar-actions { gap: 0.4rem; }
-  .ot-chip { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
-}
-
 /* Pulsante rotondo con sola icona (es. cambio tema) */
 .ot-round-button {
   width: 2.5rem;
@@ -225,6 +217,27 @@ body {
   background: var(--ot-tile);
   font-size: 0.8rem;
   color: var(--ot-muted);
+}
+
+/* Le regole per telefono stanno DOPO quelle generali del pulsante rotondo e
+   della pillola: a parità di selettore vince la regola scritta per ultima. */
+/* Telefono: spazi più stretti, così logo, pillola dell'aggiornamento e
+   pulsante del tema stanno su una riga anche su schermi da 360–390 px */
+@media (max-width: 575.98px) {
+  .ot-topbar { gap: 0.5rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+  .ot-topbar-actions { gap: 0.4rem; }
+  .ot-chip { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+  .ot-round-button { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
+}
+/* Telefoni stretti (360–400 px): logo più piccolo, così ci stanno anche la
+   data, il pulsante "Aggiorna dati" e quello del tema */
+@media (max-width: 399.98px) {
+  .ot-topbar { gap: 0.4rem; padding-left: 0.6rem; padding-right: 0.6rem; }
+  .ot-topbar-actions { gap: 0.3rem; }
+  .ot-brand-top { font-size: 1.1rem; gap: 0.4rem; }
+  .ot-brand-top img { width: 26px; height: 26px; }
+  .ot-chip { padding: 0.3rem 0.5rem; font-size: 0.72rem; }
+  .ot-round-button { width: 2.1rem; height: 2.1rem; }
 }
 
 /* ------------------------------------------------------------
@@ -609,6 +622,9 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
 }
+/* Testo dell'avviso: resta sulla riga dell'icona; il pulsante, se non ci
+   sta, va a capo sotto (a destra) */
+.ot-banner > span { flex: 1 1 10rem; min-width: 0; }
 .ot-banner-danger { background: var(--ot-sell-soft); color: var(--ot-sell); }
 .ot-banner-warning { background: var(--ot-brand-soft); color: var(--ot-brand-text); }
 .ot-banner-info { background: var(--ot-buy-soft); color: var(--ot-buy); }
@@ -625,6 +641,24 @@ body {
 .ot-banner-danger .ot-banner-action { background: var(--ot-sell); }
 .ot-banner-warning .ot-banner-action { background: var(--ot-brand); }
 .ot-banner-info .ot-banner-action { background: var(--ot-buy); }
+
+/* Stato dell'aggiornamento dei dati (actions.js): stessi margini degli avvisi */
+#refresh-status { padding: 0 0.75rem; }
+@media (min-width: 992px) { #refresh-status { padding: 0 2rem; } }
+/* Pulsante "chiudi" (×) a destra di un avviso */
+.ot-banner-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0 0.2rem;
+  margin-left: auto;
+  opacity: 0.7;
+}
+.ot-banner-action + .ot-banner-close { margin-left: 0; }
+/* Icona che gira (aggiornamento in corso): nel pulsante e nella riga di stato */
+@keyframes ot-spin { to { transform: rotate(360deg); } }
+.ot-spin, .ot-spinning i { display: inline-block; animation: ot-spin 1s linear infinite; }
+.ot-round-button:disabled { opacity: 0.6; cursor: default; }
 
 /* La pillola della data non si mostra finché è vuota (dati non ancora letti) */
 .ot-chip:empty { display: none !important; }

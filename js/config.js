@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.5.1",
+  version: "0.6.0",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".
@@ -58,6 +58,20 @@ window.OT_CONFIG = {
     repo: "orangeTide-core",
     branch: "main",
     path: "output",
+    // Workflow dell'aggiornamento notturno (orangetide-core/.github/workflows/):
+    // il pulsante "Aggiorna dati" avvia questo (SPEC 11.7).
+    workflowFile: "update.yml",
+  },
+
+  // ------------------------------------------------------------
+  // AGGIORNAMENTO DEI DATI DALL'APP E MINUTI DI ACTIONS (actions.js)
+  // ------------------------------------------------------------
+  refresh: {
+    pollSeconds: 15,          // ogni quanti secondi si controlla lo stato dell'aggiornamento
+    findRunSeconds: 3,        // dopo l'avvio: ogni quanti secondi si cerca l'esecuzione creata
+    findRunAttempts: 10,      // ... e per quante volte al massimo (10 × 3 = 30 secondi)
+    doneHideSeconds: 8,       // il messaggio "completato" sparisce dopo N secondi
+    includedMinutes: 2000,    // minuti di Actions inclusi ogni mese nel piano gratuito (repository privati)
   },
 
   // Nomi dei 4 file JSON prodotti dal core (SPEC 9.1).
@@ -328,6 +342,24 @@ window.OT_CONFIG = {
       createUrl: "https://github.com/settings/personal-access-tokens/new",
       listUrl: "https://github.com/settings/personal-access-tokens",
     },
+    // Pulsante "Aggiorna dati" (actions.js, SPEC 11.7).
+    refresh: {
+      button: "Aggiorna dati",
+      checking: "Controllo se un aggiornamento è già in corso…",
+      alreadyRunning: "Aggiornamento già in corso (avviato alle {time}): attendo la fine…",
+      queued: "Aggiornamento in coda su GitHub…",
+      running: "Aggiornamento in corso su GitHub (di solito 2–4 minuti)…",
+      done: "Aggiornamento completato: dati ricaricati.",
+      failed: "Aggiornamento terminato con errori: i dati ricaricati possono avere una fonte in errore (vedi Info → Stato delle fonti).",
+      cancelled: "Aggiornamento annullato su GitHub.",
+      notFound: "Avvio inviato, ma l'esecuzione non compare su GitHub: riprova tra poco.",
+      openOnGithub: "Apri su GitHub",
+      local: "Con i dati locali (PC) l'aggiornamento si fa con scripts\\update.py nel core.",
+      noToken: "Per aggiornare i dati serve il token GitHub.",
+      permission: "Il token non ha il permesso Actions: aggiungilo su GitHub (Actions: Read and write).",
+      rejected: "Token non valido o scaduto: aggiornalo in Impostazioni.",
+      other: "Aggiornamento non riuscito.",
+    },
     banners: {
       tokenMissing: "Per leggere i dati serve il token GitHub.",
       tokenRejected: "Token scaduto o non valido: aggiornalo in Impostazioni.",
@@ -443,6 +475,10 @@ window.OT_CONFIG = {
       dataSourceNames: { local: "cartella locale (PC)", github: "GitHub (repository privato)" },
       dataDate: "Dati al",
       overall: "Stato complessivo",
+      actions: "GitHub Actions questo mese",
+      actionsUsage: "{runs} esecuzioni, circa {minutes} minuti su {included}",
+      actionsLocal: "non disponibile con i dati locali",
+      actionsNote: "Stima dalle durate delle esecuzioni (arrotondate al minuto); i minuti fatturati esatti sono su GitHub → Settings → Billing.",
     },
 
     // Spiegazione del metodo (SPEC 4). I numeri NON sono scritti qui: i
