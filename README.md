@@ -29,8 +29,58 @@ lanciare prima `git pull` in `orangetide-core` (li aggiorna GitHub ogni notte)
 oppure `scripts\update.py`.
 
 In `js/config.js` l'impostazione `dataSource` sceglie da dove leggere i dati:
-`"local"` (questa modalità) o `"github"` (API di GitHub con token, per l'uso
-da iPhone: in arrivo nel passo 2).
+`"local"` (questa modalità), `"github"` (API di GitHub con token) oppure
+`"auto"` (predefinito: locale se l'indirizzo è `localhost`, GitHub altrimenti).
+In locale il token non serve.
+
+---
+
+## Usarla da iPhone e PC (app pubblicata)
+
+Indirizzo: **<https://devsctrlaltcanc.github.io/orangetide-app/>**
+(pubblicato da GitHub Pages a ogni push su `main`).
+
+L'interfaccia è pubblica, i **dati no**: stanno nel repository privato
+`orangeTide-core` e l'app li legge con un **token GitHub** di sola lettura,
+salvato solo sul dispositivo (SPEC 6.1).
+
+### 1. Creare il token (una volta, sul sito di GitHub)
+
+1. Aprire <https://github.com/settings/personal-access-tokens/new>.
+2. **Token name**: es. "OrangeTide 2026". **Expiration**: la durata preferita
+   (al massimo un anno). **Annotare la data di scadenza.**
+3. **Repository access** → *Only select repositories* → solo **orangeTide-core**.
+4. **Permissions** → *Repository permissions* → **Contents: Read-only**.
+   Nessun altro permesso.
+5. **Generate token** e copiarlo (inizia con `github_pat_`).
+6. Conservarlo in un gestore di password (es. Portachiavi iCloud): servirà
+   per inserirlo su ogni dispositivo.
+
+### 2. Installare l'app
+
+- **iPhone**: aprire l'indirizzo in **Safari** → pulsante Condividi →
+  **Aggiungi alla schermata Home**.
+- **PC**: aprire l'indirizzo in **Chrome o Edge** → icona "Installa" nella
+  barra dell'indirizzo (oppure menu → *Installa OrangeTide*).
+
+### 3. Inserire il token (una volta per dispositivo)
+
+Nell'app: **Altro → Impostazioni** → incollare token e data di scadenza →
+**Verifica e salva** (l'app prova una lettura vera dei dati).
+
+Su iPhone va fatto **dentro l'app installata**, non in Safari: le due hanno
+memorie separate.
+
+### Rinnovo del token
+
+- Circa 15 giorni prima della scadenza l'app mostra un avviso in alto.
+- Su <https://github.com/settings/personal-access-tokens> aprire il token →
+  **Regenerate token** → copiare il nuovo → incollarlo in Impostazioni su
+  **ogni** dispositivo (con la nuova data di scadenza).
+- Se il token scade o viene rifiutato compare l'avviso "Token scaduto o non
+  valido": l'app continua a mostrare gli ultimi dati salvati, con la loro data.
+- Disinstallando l'app o cancellando i dati del browser il token salvato si
+  perde e va reinserito.
 
 ---
 
@@ -50,7 +100,7 @@ da iPhone: in arrivo nel passo 2).
 
 ### Pagine e widget
 
-Ogni riquadro dell'app è un **widget** indipendente (es. `priceSummary`,
+Ogni riquadro dell'app è un **widget** indipendente (es. `priceHero`,
 `riskGauge`). Le pagine sono solo **elenchi di widget** in `js/config.js`
 (voce `pages`): per spostare un riquadro da una pagina all'altra, o cambiarne
 l'ordine, basta spostarne il nome nell'elenco. Un widget non ancora scritto
@@ -59,4 +109,6 @@ compare come riquadro tratteggiato "In arrivo".
 ### Rilasciare una nuova versione
 
 Incrementare **insieme** `version` in `js/config.js` e `VERSION` in
-`service-worker.js` (es. `0.1.0` → `0.1.1`), poi commit + push.
+`service-worker.js` (es. `0.1.0` → `0.1.1`), poi commit + push. GitHub Pages
+ripubblica in circa un minuto; le app installate mostrano l'avviso "Nuova
+versione disponibile — Aggiorna" (non serve reinstallarle).
