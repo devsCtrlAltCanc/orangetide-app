@@ -737,3 +737,38 @@ body {
 .ot-sub { font-size: 0.7rem; color: var(--ot-muted); }
 .ot-bt-notes { padding-left: 1.1rem; margin: 0.5rem 0 0; }
 .ot-bt-notes li { margin-bottom: 0.25rem; }
+
+/* ------------------------------------------------------------
+   21. PAGINA INFO: metodo, crediti
+   ------------------------------------------------------------ */
+/* Tre tessere degli orizzonti: in colonna su telefono, affiancate su PC */
+.ot-method-horizons,
+.ot-method-extra {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+@media (min-width: 768px) {
+  .ot-method-horizons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ot-method-extra { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Passi del calcolo: numero in un cerchio arancione + testo */
+.ot-steps-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; }
+.ot-step { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.9rem; }
+.ot-step-number {
+  flex: none;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ot-gradient);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+/* Collegamenti nei crediti: arancione, senza sottolineatura */
+.ot-rows a { color: var(--ot-brand-text); font-weight: 700; text-decoration: none; }
+.ot-rows a:hover { text-decoration: underline; }

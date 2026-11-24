@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.3.0",
+  version: "0.4.0",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".
@@ -116,7 +116,7 @@ window.OT_CONFIG = {
     },
     {
       id: "info", title: "Info", icon: "bi-info-circle", nav: "more",
-      widgets: ["sourcesStatus", "methodInfo", "credits", "disclaimer"],
+      widgets: ["sourcesStatus", "appInfo", "methodInfo", "credits"],
     },
     {
       id: "impostazioni", title: "Impostazioni", icon: "bi-gear", nav: "more",
@@ -412,6 +412,82 @@ window.OT_CONFIG = {
       ok: { text: "ok", badge: "buy" },
       stale: { text: "dati vecchi", badge: "brand" },
       error: { text: "errore", badge: "sell" },
+    },
+
+    // ------------------------------------------------------------
+    // PAGINA INFO (info.js, SPEC 11.4)
+    // ------------------------------------------------------------
+    info: {
+      lastUpdate: "Ultimo aggiornamento",
+      appVersion: "Versione dell'app",
+      schema: "Versione dei dati",
+      schemaMismatch: "l'app si aspetta la {expected}: aggiornare l'app o il core",
+      dataSource: "Sorgente dei dati",
+      dataSourceNames: { local: "cartella locale (PC)", github: "GitHub (repository privato)" },
+      dataDate: "Dati al",
+      overall: "Stato complessivo",
+    },
+
+    // Spiegazione del metodo (SPEC 4). ATTENZIONE: i numeri (soglie e
+    // finestre) sono quelli di config/config.yaml del core: se lì cambiano,
+    // vanno aggiornati anche qui (i JSON non li contengono).
+    method: {
+      intro: "OrangeTide sintetizza il contesto di mercato di Bitcoin su tre orizzonti e dice per ciascuno se il momento è favorevole all'acquisto (BUY), neutro (HOLD) o sfavorevole (SELL). Tutta la logica è a regole fisse, trasparente e verificata sullo storico (backtest): nessuna intelligenza artificiale e nessuna previsione.",
+      horizonsTitle: "Orizzonti",
+      roleNote: "Guida = confermato dal backtest anche nel periodo di verifica; informativo = da confermare su dati futuri.",
+      stepsTitle: "Come si calcola il segnale",
+      steps: [
+        { title: "Percentile", text: "Per ogni indicatore si guarda dove si trova il valore di oggi rispetto agli ultimi anni: 1 anno per il breve, 2 per il medio, 4 per il lungo. Percentile 90 = più alto del 90% dei valori del periodo. Il percentile si adatta ai cicli che cambiano, a differenza di una soglia fissa." },
+        { title: "Livello da −2 a +2", text: "Il percentile diventa un livello su cinque gradini. Per un indicatore contrarian (gli eccessi tendono a invertirsi) valori bassi sono favorevoli: percentile sotto 10 → +2, 10–30 → +1, 30–70 → 0, 70–90 → −1, sopra 90 → −2. Per un indicatore momentum (il trend tende a continuare) è il contrario: sopra 90 → +2, sotto 10 → −2. Mayer Multiple e giorni dall'halving usano invece fasce fisse." },
+        { title: "Convenienza (−100…+100)", text: "Media dei livelli degli indicatori disponibili, divisa per 2 e moltiplicata per 100. Esempio: livelli +2, +1, +1, 0 → media 1 → +50." },
+        { title: "Accordo (0–100%)", text: "Tra gli indicatori con un'opinione netta (livello diverso da 0), la percentuale che va nella stessa direzione della convenienza. È la confidenza del segnale." },
+        { title: "Segnale", text: "BUY se convenienza ≥ +40 e accordo ≥ 60%; SELL se convenienza ≤ −40 e accordo ≥ 60%; altrimenti HOLD. Con meno di 3 indicatori disponibili il segnale è n/d." },
+      ],
+      riskTitle: "Indice di rischio (0–1)",
+      riskText: "Versione continua della convenienza del lungo: 0 = zone storiche di accumulo, 1 = euforia. Si calcola dai percentili (o dalle fasce fisse) degli indicatori del lungo.",
+      backtestTitle: "Verifica sullo storico",
+      backtestText: "Ogni giorno usa solo i dati pubblicati fino a quel giorno, con il ritardo reale di pubblicazione di ogni fonte. Le soglie si regolano sui dati fino al 2022 (taratura); dal 2023 i dati servono solo a confermare (verifica). Lo stesso codice calcola i segnali di oggi e quelli del backtest.",
+      indicatorsTitle: "Indicatori",
+      typeNames: {
+        momentum: "Momentum", contrarian: "Contrarian",
+        inverted_momentum: "Momentum invertito", fixed: "Fasce fisse",
+      },
+      // Cosa misura ogni indicatore (chiave = id nei JSON del core).
+      descriptions: {
+        B1_etf_flow_5d: "Entrate/uscite nette degli ETF spot USA negli ultimi 5 giorni di borsa.",
+        B2_funding_7d: "Costo medio della leva sui perpetual negli ultimi 7 giorni: alto = troppo ottimismo.",
+        B3_fear_greed: "Sentiment del mercato (alternative.me), da paura estrema ad avidità estrema.",
+        B4_rsi_14: "Forza del movimento recente del prezzo (RSI a 14 giorni).",
+        M1_etf_flow_30d: "Entrate/uscite nette degli ETF negli ultimi 30 giorni di borsa.",
+        M2_price_vs_ma50: "Distanza del prezzo dalla media degli ultimi 50 giorni.",
+        M3_stablecoin_30d: "Variazione a 30 giorni dell'offerta di USDT + USDC: liquidità pronta a entrare nel mercato crypto.",
+        M4_dollar_trend: "Variazione a 20 giorni dell'indice del dollaro: un dollaro in salita frena Bitcoin.",
+        L1_mvrv_zscore: "Quanto il valore di mercato supera il prezzo medio di acquisto delle monete.",
+        L2_mayer_multiple: "Prezzo diviso la media degli ultimi 200 giorni.",
+        L3_ma200w_distance: "Distanza del prezzo dalla media delle ultime 200 settimane.",
+        L4_days_since_halving: "Posizione nel ciclo di 4 anni legato all'halving.",
+      },
+    },
+
+    // Fonti dei dati e librerie (SPEC 9.3: citare Bitview e Coin Metrics).
+    credits: {
+      dataTitle: "Dati",
+      libsTitle: "Librerie",
+      sources: [
+        { name: "Bitstamp", url: "https://www.bitstamp.net", use: "prezzo giornaliero (dal 2011)" },
+        { name: "alternative.me", url: "https://alternative.me/crypto/fear-and-greed-index/", use: "Fear & Greed Index" },
+        { name: "Farside Investors", url: "https://farside.co.uk/btc/", use: "flussi degli ETF spot USA" },
+        { name: "Deribit", url: "https://www.deribit.com", use: "funding rate dei perpetual" },
+        { name: "Bitview (bitview.space)", url: "https://bitview.space", use: "dati on-chain (MVRV, CVDD)", license: "CC BY 4.0" },
+        { name: "Coin Metrics", url: "https://coinmetrics.io", use: "offerta di USDT e USDC", license: "CC BY-NC 4.0" },
+        { name: "FRED, St. Louis Fed", url: "https://fred.stlouisfed.org/series/DTWEXBGS", use: "indice del dollaro (DTWEXBGS)" },
+      ],
+      libraries: [
+        { name: "Bootstrap 5", url: "https://getbootstrap.com", license: "MIT" },
+        { name: "Bootstrap Icons", url: "https://icons.getbootstrap.com", license: "MIT" },
+        { name: "Apache ECharts", url: "https://echarts.apache.org", license: "Apache 2.0" },
+        { name: "Manrope (font)", url: "https://fonts.google.com/specimen/Manrope", license: "OFL" },
+      ],
     },
   },
 };
