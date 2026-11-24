@@ -123,23 +123,51 @@ OT.registerWidget("mvrvChart", {
 // ============================================================
 // WIDGET cvddChart — CVDD
 // ============================================================
+/**
+ * Zone del CVDD per il riquadro "Prezzo / CVDD" (SPEC 16.5): una fascia
+ * colorata per ogni zona del core (latest.json, cycle.cvdd.zones), dalla
+ * zona precedente (o da 0) fino al suo "max".
+ * @param {object|null|undefined} cvdd  latest.json cycle.cvdd
+ */
+function cvddZones(cvdd) {
+  if (!cvdd) return [];
+  const fills = OT_CONFIG.cvdd.zoneFills;
+  let from = 0;
+  return cvdd.zones.map(function (z, i) {
+    const zone = { from: from, to: z.max, color: fills[i] || fills[fills.length - 1] };
+    from = z.max;
+    return zone;
+  });
+}
+
+/** Nota sulle zone: "Fasce verdi: sotto 1,25× (Zona storica di minimo), ...". */
+function cvddZonesNote(cvdd) {
+  if (!cvdd) return "";
+  const t = OT_CONFIG.texts.cycle;
+  const items = cvdd.zones.map(function (z) {
+    return t.cvddZoneItem.replace("{max}", OT.fmt.number(z.max, 2)).replace("{label}", OT.escape(z.label));
+  });
+  return " " + t.cvddZonesNote.replace("{zones}", items.join(", "));
+}
+
 OT.registerWidget("cvddChart", {
   title: "CVDD",
   size: "full",
-  needs: ["history"],
+  needs: ["history", "latest"],
   render: function (body, files) {
     const h = files.history.data;
     const cvdd = h.series.cvdd || [];
+    const cvddToday = files.latest.data.cycle.cvdd;   // zone di oggi (può mancare)
     // Riquadro sotto: quanto il prezzo è sopra il CVDD (prezzo / CVDD).
     const ratio = h.price.map(function (p, i) {
       return (p === null || !cvdd[i]) ? null : p / cvdd[i];
     });
     OT.charts.priceWithPane(chartFrame(body,
-      "Cumulative Value-Days Destroyed: valore delle monete \"vecchie\" spostate, cumulato e diviso per l'età del mercato. Il prezzo l'ha toccato ai minimi del 2015, 2018 e 2022. Sotto: quante volte il prezzo è sopra il CVDD."), {
+      "Cumulative Value-Days Destroyed: valore delle monete \"vecchie\" spostate, cumulato e diviso per l'età del mercato. Il prezzo l'ha toccato ai minimi del 2015, 2018 e 2022. Sotto: quante volte il prezzo è sopra il CVDD." + cvddZonesNote(cvddToday)), {
       dates: h.dates, price: h.price,
       overlays: [{ name: "CVDD", data: cvdd, color: OT_CONFIG.colors.brand }],
       pane: {
-        name: "Prezzo / CVDD", kind: "line", data: ratio,
+        name: "Prezzo / CVDD", kind: "line", data: ratio, zones: cvddZones(cvddToday),
         format: function (v) { return OT.fmt.number(v, 1) + "×"; },
       },
       zoomFrom: h.dates[0],

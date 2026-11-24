@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.4.0",
+  version: "0.5.0",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".
@@ -210,6 +210,14 @@ window.OT_CONFIG = {
     L4_days_since_halving: "Halving",
   },
 
+  // Zone del CVDD (SPEC 16.5): soglie ed etichette arrivano dal core
+  // (latest.json, cycle.cvdd.zones); qui solo i colori, nello stesso ordine
+  // (la prima zona è la più vicina al CVDD).
+  cvdd: {
+    zoneFills: ["rgba(34,160,107,0.22)", "rgba(34,160,107,0.09)"],   // sfondo nel grafico
+    zoneBadges: ["buy", "buy"],                                      // pillola in dashboard
+  },
+
   // Pagina Cicli (SPEC 16.4).
   cycles: {
     defaultScale: "log",           // "log" o "linear": scala verticale all'apertura
@@ -268,6 +276,12 @@ window.OT_CONFIG = {
       peak: "Dal massimo di ciclo",
       peakDays: "giorni",
       provisional: "provvisorio",
+      cvdd: "Distanza dal CVDD",
+      cvddAbove: "sopra il CVDD di",
+      cvddBelow: "sotto il CVDD di",
+      cvddNoZone: "sopra le zone storiche di minimo",
+      cvddZonesNote: "Fasce verdi: {zones}.",     // nota sotto il grafico del CVDD
+      cvddZoneItem: "sotto {max}× ({label})",
     },
 
     // Nomi degli orizzonti nel report (chiave = "horizon" nelle righe del report).
@@ -418,6 +432,8 @@ window.OT_CONFIG = {
     // PAGINA INFO (info.js, SPEC 11.4)
     // ------------------------------------------------------------
     info: {
+      year: "anno",
+      years: "anni",
       lastUpdate: "Ultimo aggiornamento",
       appVersion: "Versione dell'app",
       schema: "Versione dei dati",
@@ -428,25 +444,31 @@ window.OT_CONFIG = {
       overall: "Stato complessivo",
     },
 
-    // Spiegazione del metodo (SPEC 4). ATTENZIONE: i numeri (soglie e
-    // finestre) sono quelli di config/config.yaml del core: se lì cambiano,
-    // vanno aggiornati anche qui (i JSON non li contengono).
+    // Spiegazione del metodo (SPEC 4). I numeri NON sono scritti qui: i
+    // segnaposto tra graffe vengono riempiti con i parametri del core
+    // (meta.json, voce "method"), così il testo segue sempre config.yaml:
+    //   {short} {medium} {long}   finestre del percentile ("1 anno", "4 anni")
+    //   {t1} {t2} {t3} {t4}       soglie del percentile (10, 30, 70, 90)
+    //   {buy} {sell} {agree}      soglie del segnale (40, 40, 60)
+    //   {min}                     indicatori minimi per un segnale (3)
+    //   {calEnd} {valStart}       anno di fine taratura / inizio verifica
+    // Se meta.json non ha ancora i parametri, al loro posto compare "…".
     method: {
       intro: "OrangeTide sintetizza il contesto di mercato di Bitcoin su tre orizzonti e dice per ciascuno se il momento è favorevole all'acquisto (BUY), neutro (HOLD) o sfavorevole (SELL). Tutta la logica è a regole fisse, trasparente e verificata sullo storico (backtest): nessuna intelligenza artificiale e nessuna previsione.",
       horizonsTitle: "Orizzonti",
       roleNote: "Guida = confermato dal backtest anche nel periodo di verifica; informativo = da confermare su dati futuri.",
       stepsTitle: "Come si calcola il segnale",
       steps: [
-        { title: "Percentile", text: "Per ogni indicatore si guarda dove si trova il valore di oggi rispetto agli ultimi anni: 1 anno per il breve, 2 per il medio, 4 per il lungo. Percentile 90 = più alto del 90% dei valori del periodo. Il percentile si adatta ai cicli che cambiano, a differenza di una soglia fissa." },
-        { title: "Livello da −2 a +2", text: "Il percentile diventa un livello su cinque gradini. Per un indicatore contrarian (gli eccessi tendono a invertirsi) valori bassi sono favorevoli: percentile sotto 10 → +2, 10–30 → +1, 30–70 → 0, 70–90 → −1, sopra 90 → −2. Per un indicatore momentum (il trend tende a continuare) è il contrario: sopra 90 → +2, sotto 10 → −2. Mayer Multiple e giorni dall'halving usano invece fasce fisse." },
+        { title: "Percentile", text: "Per ogni indicatore si guarda dove si trova il valore di oggi rispetto al passato recente: {short} per il breve, {medium} per il medio, {long} per il lungo. Percentile 90 = più alto del 90% dei valori del periodo. Il percentile si adatta ai cicli che cambiano, a differenza di una soglia fissa." },
+        { title: "Livello da −2 a +2", text: "Il percentile diventa un livello su cinque gradini. Per un indicatore contrarian (gli eccessi tendono a invertirsi) valori bassi sono favorevoli: percentile sotto {t1} → +2, {t1}–{t2} → +1, {t2}–{t3} → 0, {t3}–{t4} → −1, sopra {t4} → −2. Per un indicatore momentum (il trend tende a continuare) è il contrario: sopra {t4} → +2, sotto {t1} → −2. Mayer Multiple e giorni dall'halving usano invece fasce fisse." },
         { title: "Convenienza (−100…+100)", text: "Media dei livelli degli indicatori disponibili, divisa per 2 e moltiplicata per 100. Esempio: livelli +2, +1, +1, 0 → media 1 → +50." },
         { title: "Accordo (0–100%)", text: "Tra gli indicatori con un'opinione netta (livello diverso da 0), la percentuale che va nella stessa direzione della convenienza. È la confidenza del segnale." },
-        { title: "Segnale", text: "BUY se convenienza ≥ +40 e accordo ≥ 60%; SELL se convenienza ≤ −40 e accordo ≥ 60%; altrimenti HOLD. Con meno di 3 indicatori disponibili il segnale è n/d." },
+        { title: "Segnale", text: "BUY se convenienza ≥ +{buy} e accordo ≥ {agree}%; SELL se convenienza ≤ −{sell} e accordo ≥ {agree}%; altrimenti HOLD. Con meno di {min} indicatori disponibili il segnale è n/d." },
       ],
       riskTitle: "Indice di rischio (0–1)",
       riskText: "Versione continua della convenienza del lungo: 0 = zone storiche di accumulo, 1 = euforia. Si calcola dai percentili (o dalle fasce fisse) degli indicatori del lungo.",
       backtestTitle: "Verifica sullo storico",
-      backtestText: "Ogni giorno usa solo i dati pubblicati fino a quel giorno, con il ritardo reale di pubblicazione di ogni fonte. Le soglie si regolano sui dati fino al 2022 (taratura); dal 2023 i dati servono solo a confermare (verifica). Lo stesso codice calcola i segnali di oggi e quelli del backtest.",
+      backtestText: "Ogni giorno usa solo i dati pubblicati fino a quel giorno, con il ritardo reale di pubblicazione di ogni fonte. Le soglie si regolano sui dati fino al {calEnd} (taratura); dal {valStart} i dati servono solo a confermare (verifica). Lo stesso codice calcola i segnali di oggi e quelli del backtest.",
       indicatorsTitle: "Indicatori",
       typeNames: {
         momentum: "Momentum", contrarian: "Contrarian",

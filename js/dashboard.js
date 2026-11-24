@@ -12,7 +12,8 @@
 //   fearGreed        Fear & Greed Index di oggi e degli ultimi giorni
 //   combinedReading  lettura combinata lungo × breve (SPEC 2.3)
 //   horizonCards     segnale, convenienza, accordo e dettaglio per orizzonte (SPEC 2.2)
-//   cycleSummary     drawdown, epoca di halving, massimo di ciclo (SPEC 16.3–16.4)
+//   cycleSummary     distanza dal CVDD, drawdown, epoca di halving, massimo di
+//                    ciclo (SPEC 16.3–16.5)
 //   report           report a semafori (SPEC 9.2; non usato nella dashboard)
 //
 // Legge: latest.json (situazione di oggi), meta.json (ora dell'aggiornamento),
@@ -345,8 +346,37 @@ function horizonCard(id, h, reportById) {
 }
 
 // ============================================================
-// WIDGET cycleSummary — CONTESTO CICLICO DI OGGI (SPEC 16.3, 16.4)
+// WIDGET cycleSummary — CONTESTO CICLICO DI OGGI (SPEC 16.3, 16.4, 16.5)
 // ============================================================
+/**
+ * Tessera "Distanza dal CVDD" (SPEC 16.5): quante volte il prezzo è sopra il
+ * CVDD e in quale zona storica si trova. Contesto descrittivo, non un segnale.
+ * @param {object|null|undefined} cvdd  latest.json cycle.cvdd:
+ *   { value, ratio (prezzo / CVDD), zone (etichetta o null), zones [{max, label}] }
+ * @returns {string} HTML ("" se il CVDD manca)
+ */
+function cvddTile(cvdd) {
+  if (!cvdd) return "";
+  const t = OT_CONFIG.texts.cycle;
+  // Colore della pillola: quello della zona in cui cade il rapporto
+  // (stesso ordine delle zone del core: config.js, cvdd.zoneBadges).
+  const zoneIndex = cvdd.zones.findIndex(function (z) { return cvdd.ratio <= z.max; });
+  const badge = zoneIndex >= 0 ? (OT_CONFIG.cvdd.zoneBadges[zoneIndex] || "hold") : "hold";
+  const zoneText = cvdd.zone || t.cvddNoZone;
+  // ratio 1,2459 -> "+24,6%" sopra il CVDD; sotto 1 -> negativo.
+  const distance = cvdd.ratio - 1;
+  const position = distance >= 0 ? t.cvddAbove : t.cvddBelow;
+  return `
+    <div class="ot-tile">
+      <div class="ot-tile-label">${t.cvdd}</div>
+      <div class="ot-tile-value">${OT.fmt.number(cvdd.ratio, 2)}×</div>
+      <div class="ot-tile-sub">
+        <span class="ot-badge ot-badge-${badge}">${OT.escape(zoneText)}</span>
+        ${OT.fmt.pct(distance)} ${position} ${OT.fmt.usd(cvdd.value)}
+      </div>
+    </div>`;
+}
+
 OT.registerWidget("cycleSummary", {
   title: "Contesto ciclico",
   size: "full",
@@ -370,6 +400,7 @@ OT.registerWidget("cycleSummary", {
 
     body.innerHTML = `
       <div class="ot-tiles">
+        ${cvddTile(c.cvdd)}
         <div class="ot-tile">
           <div class="ot-tile-label">${t.drawdown}</div>
           <div class="ot-tile-value">${OT.fmt.pct(c.drawdown)}</div>

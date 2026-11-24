@@ -16,7 +16,7 @@
 //   dell'interfaccia e cancella quella vecchia.
 // ============================================================
 
-const VERSION = "0.4.0";
+const VERSION = "0.5.0";
 const CACHE_NAME = "ot-app-" + VERSION;
 
 // File dell'interfaccia salvati subito all'installazione.
