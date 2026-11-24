@@ -169,6 +169,7 @@ OT.registerWidget("methodInfo", {
 // ============================================================
 OT.registerWidget("credits", {
   title: "Fonti e crediti",
+  size: "full",
   needs: [],
 
   render: function (body) {
@@ -187,10 +188,17 @@ OT.registerWidget("credits", {
       return `<div class="ot-row"><div>${link(l)}</div>${license(l)}</div>`;
     }).join("");
 
+    // Su PC due colonne (dati | librerie), su telefono una sotto l'altra.
     body.innerHTML = `
-      <div class="ot-bt-caption">${c.dataTitle}</div>
-      <div class="ot-rows mb-3">${sources}</div>
-      <div class="ot-bt-caption">${c.libsTitle}</div>
-      <div class="ot-rows">${libraries}</div>`;
+      <div class="ot-credits">
+        <div>
+          <div class="ot-bt-caption">${c.dataTitle}</div>
+          <div class="ot-rows">${sources}</div>
+        </div>
+        <div>
+          <div class="ot-bt-caption">${c.libsTitle}</div>
+          <div class="ot-rows">${libraries}</div>
+        </div>
+      </div>`;
   },
 });

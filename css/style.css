@@ -769,6 +769,11 @@ body {
   font-weight: 800;
   font-size: 0.85rem;
 }
+/* Crediti: dati e librerie affiancati su PC (dati più larghi) */
+.ot-credits { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+@media (min-width: 768px) {
+  .ot-credits { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 1.5rem; }
+}
 /* Collegamenti nei crediti: arancione, senza sottolineatura */
 .ot-rows a { color: var(--ot-brand-text); font-weight: 700; text-decoration: none; }
 .ot-rows a:hover { text-decoration: underline; }
