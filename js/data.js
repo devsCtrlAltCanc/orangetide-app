@@ -92,14 +92,31 @@ OT.data = (function () {
 
     // GitHub: serve il token salvato in Impostazioni.
     const token = OT.auth.getToken();
-    if (!token) throw new Error(OT_CONFIG.texts.token.missing);
+    if (!token) throw tokenError(OT_CONFIG.texts.token.missing);
     const response = await fetch(url, { headers: OT.auth.headers(token), cache: "no-store" });
     if (response.ok) {
       OT.auth.markAccepted();
       return response;
     }
-    if (OT.auth.isRejection(response)) OT.auth.markRejected();
+    if (OT.auth.isRejection(response)) {
+      OT.auth.markRejected();
+      throw tokenError(OT.auth.describeError(response));
+    }
     throw new Error(OT.auth.describeError(response));
+  }
+
+  /**
+   * Errore "manca il token o GitHub lo rifiuta". Ha in più la proprietà
+   * isTokenError: i riquadri la riconoscono e mostrano un messaggio neutro
+   * (l'azione da fare la dice già l'avviso in alto: SPEC 11.6).
+   * In JavaScript a un oggetto Error si possono aggiungere proprietà libere.
+   * @param {string} message
+   * @returns {Error}
+   */
+  function tokenError(message) {
+    const error = new Error(message);
+    error.isTokenError = true;
+    return error;
   }
 
   // ============================================================
@@ -158,7 +175,9 @@ OT.data = (function () {
     } catch (error) {
       const copy = await readCopy(url);
       if (copy === null) {
-        throw new Error(`${OT_CONFIG.files[name]}: ${error.message}`);
+        const wrapped = new Error(`${OT_CONFIG.files[name]}: ${error.message}`);
+        wrapped.isTokenError = error.isTokenError === true;   // si conserva il tipo di errore
+        throw wrapped;
       }
       return { data: JSON.parse(copy.text), fromCache: true, savedAt: copy.savedAt, error: error.message };
     }

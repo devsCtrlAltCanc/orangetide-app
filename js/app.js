@@ -424,6 +424,12 @@ OT.app.renderWidget = async function (widgetId, card) {
     body.innerHTML = "";
     widget.render(body, files);
   } catch (error) {
+    // Token mancante o rifiutato: messaggio neutro, uguale in tutti i
+    // riquadri (cosa fare lo spiega l'avviso in alto). Altri errori: in rosso.
+    if (error.isTokenError) {
+      body.innerHTML = `<div class="ot-muted"><i class="bi bi-lock"></i> ${OT_CONFIG.texts.widgetNoToken}</div>`;
+      return;
+    }
     console.error(`Widget ${widgetId}:`, error);
     body.innerHTML = `<div class="text-danger"><i class="bi bi-exclamation-triangle"></i>
       ${OT_CONFIG.texts.widgetError}: ${OT.escape(error.message)}</div>`;
