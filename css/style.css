@@ -190,6 +190,13 @@ body {
   .ot-page-title { display: none; }
 }
 .ot-topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
+/* Telefono: spazi più stretti, così logo, pillola dell'aggiornamento e
+   pulsante del tema stanno su una riga anche su schermi da 360–390 px */
+@media (max-width: 575.98px) {
+  .ot-topbar { gap: 0.5rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+  .ot-topbar-actions { gap: 0.4rem; }
+  .ot-chip { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+}
 
 /* Pulsante rotondo con sola icona (es. cambio tema) */
 .ot-round-button {

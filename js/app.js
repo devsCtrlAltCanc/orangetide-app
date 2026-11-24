@@ -108,6 +108,54 @@ OT.escape = function (text) {
 };
 
 // ============================================================
+// SEZIONE 2b — ELEMENTI COMUNI DELL'INTERFACCIA (usati da più pagine)
+// ============================================================
+OT.ui = {
+  /**
+   * Numero intero con segno e meno tipografico: 2 -> "+2", −38 -> "−38",
+   * null -> "n/d". Usato per i livelli (−2…+2) e per la convenienza.
+   */
+  signed: function (value) {
+    if (value === null || value === undefined) return "n/d";
+    if (value > 0) return "+" + value;
+    return value < 0 ? "−" + Math.abs(value) : "0";
+  },
+
+  /**
+   * Gruppo di pulsanti a scelta singola (stile dei pulsanti 3M / 1A della dashboard).
+   * @param {string} group      nome del gruppo (attributo data-group)
+   * @param {Array} options     [[valore, testo], ...]
+   * @param {string} selected   valore attivo
+   * @returns {string} HTML
+   */
+  choiceButtons: function (group, options, selected) {
+    const buttons = options.map(function (o) {
+      const active = o[0] === selected ? " active" : "";
+      return `<button type="button" class="ot-range${active}" data-group="${group}" data-value="${o[0]}">${OT.escape(o[1])}</button>`;
+    }).join("");
+    return `<div class="ot-ranges ot-choice">${buttons}</div>`;
+  },
+
+  /**
+   * Collega i pulsanti di un gruppo: al clic evidenzia quello scelto e
+   * chiama onChange con il suo valore.
+   * @param {HTMLElement} body   riquadro che contiene i pulsanti
+   * @param {string} group
+   * @param {function} onChange  riceve il valore scelto
+   */
+  bindChoice: function (body, group, onChange) {
+    for (const button of body.querySelectorAll(`[data-group="${group}"]`)) {
+      button.addEventListener("click", function () {
+        for (const b of body.querySelectorAll(`[data-group="${group}"]`)) {
+          b.classList.toggle("active", b === button);
+        }
+        onChange(button.dataset.value);
+      });
+    }
+  },
+};
+
+// ============================================================
 // SEZIONE 3 — TEMA CHIARO / SCURO
 // ============================================================
 // Bootstrap 5.3 cambia i colori in base all'attributo data-bs-theme
@@ -218,7 +266,11 @@ OT.app.updateThemeButton = function () {
  * Mostra nella barra in alto quando è avvenuto l'ultimo aggiornamento
  * (meta.json: generated_at) e a che giorno arrivano i dati.
  *   PC:       "Dati al 22/11/2026 · aggiornati 24/11, 04:19"
- *   telefono: "aggiornati 24/11, 04:19" (la parte "Dati al" è nascosta)
+ *   tablet:   "aggiornati 24/11, 04:19" (la parte "Dati al" è nascosta)
+ *   telefono: "24/11, 04:19" con l'icona di aggiornamento (spazio per logo
+ *             e pulsante del tema anche sugli schermi più stretti)
+ * Le classi d-none / d-sm-inline / d-md-inline di Bootstrap nascondono o
+ * mostrano un pezzo di testo secondo la larghezza dello schermo.
  * Se l'aggiornamento è più vecchio di alerts.staleDataHours la pillola
  * diventa arancione (c'è anche l'avviso in alto).
  */
@@ -231,7 +283,7 @@ OT.app.showDataDate = async function () {
       { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
     chip.innerHTML = `<i class="bi bi-arrow-repeat"></i>
       <span class="d-none d-md-inline">${OT_CONFIG.texts.dataAsOf} ${OT.fmt.date(meta.data_date)} ·</span>
-      <span>${OT_CONFIG.texts.updatedAt} ${when}</span>`;
+      <span><span class="d-none d-sm-inline">${OT_CONFIG.texts.updatedAt} </span>${when}</span>`;
     chip.title = `${OT_CONFIG.texts.lastUpdate}: ${OT.fmt.dateTime(meta.generated_at)}`;
     const hours = (Date.now() - updated) / 3600000;          // ms -> ore
     chip.classList.toggle("ot-chip-stale", hours > OT_CONFIG.alerts.staleDataHours);
