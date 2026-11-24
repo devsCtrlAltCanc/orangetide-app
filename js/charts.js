@@ -175,6 +175,60 @@ OT.charts = (function () {
   }
 
   // ============================================================
+  // SEZIONE 3b — SCALA DEL PREZZO ADATTATA AL PERIODO VISIBILE
+  // ============================================================
+  /**
+   * Adatta l'asse verticale del prezzo (indice 0) al periodo visibile.
+   * Con lo zoom in modalità filterMode "none" (necessaria per evitare
+   * ridisegni "sporchi", vedi sotto) ECharts non ricalcola l'asse
+   * verticale: senza questa funzione la scala logaritmica andrebbe sempre
+   * da 1 $ a 1 M$ e il prezzo degli ultimi anni resterebbe schiacciato.
+   * Si ricalcola a ogni zoom ("datazoom" = evento dello zoom).
+   * @param {object} chart       grafico ECharts
+   * @param {string[]} dates     date di tutte le serie elencate sotto
+   * @param {Array[]} valueLists elenchi di valori da tenere visibili (prezzo, CVDD...)
+   * @returns {function} la funzione che riadatta la scala
+   */
+  function fitPriceAxis(chart, dates, valueLists) {
+    // Le date in millisecondi si calcolano una volta sola.
+    const times = dates.map(function (d) { return Date.parse(d); });
+    const margin = OT_CONFIG.charts.priceAxisMargin;
+    let pending = false;
+
+    function fit() {
+      pending = false;
+      const zoom = chart.getOption().dataZoom;
+      if (!zoom || !zoom.length) return;
+      const from = zoom[0].startValue;
+      const to = zoom[0].endValue;
+      let low = Infinity;
+      let high = -Infinity;
+      for (let i = 0; i < times.length; i++) {
+        if (times[i] < from || times[i] > to) continue;
+        for (const values of valueLists) {
+          const v = values[i];
+          if (v === null || v === undefined || v === "-" || v <= 0) continue;
+          if (v < low) low = v;
+          if (v > high) high = v;
+        }
+      }
+      if (low === Infinity) return;
+      // Si modifica solo il primo asse verticale (quello del prezzo).
+      chart.setOption({ yAxis: [{ min: low / (1 + margin), max: high * (1 + margin) }] });
+    }
+
+    // Durante il trascinamento l'evento arriva molte volte al secondo:
+    // requestAnimationFrame ricalcola al massimo una volta per fotogramma.
+    chart.on("datazoom", function () {
+      if (pending) return;
+      pending = true;
+      window.requestAnimationFrame(fit);
+    });
+    fit();
+    return fit;   // chi ridisegna il grafico può richiamarla subito (es. storico.js)
+  }
+
+  // ============================================================
   // SEZIONE 3 — PREZZO + RIQUADRO DELLA METRICA (stile bitbo)
   // ============================================================
   /**
@@ -206,7 +260,7 @@ OT.charts = (function () {
    *   priceColorBy              (facoltativo) valori 0–1 che colorano il prezzo
    *   colorStops                colori per priceColorBy / pane.colorByValue
    *   overlays                  (facoltativo) [{ name, data, color }] linee sul prezzo
-   *   pane: { name, kind ("line" | "bar"), data, format(v),
+   *   pane: { name, kind ("line" | "bar"), data, format(v), color, area (true = area sotto la linea),
    *           min, max, zones [{from, to, color}], barColor(v),
    *           colorByValue (true = linea colorata come il prezzo),
    *           line2 { name, data, color } seconda serie (asse destro) }
@@ -256,8 +310,11 @@ OT.charts = (function () {
       data: paneData, showSymbol: false, barMaxWidth: 6,
     };
     if (pane.kind === "line" && !pane.colorByValue) {
-      paneSeries.lineStyle = { width: 1.6, color: OT_CONFIG.colors.brand };
-      paneSeries.itemStyle = { color: OT_CONFIG.colors.brand };
+      const lineColor = pane.color || OT_CONFIG.colors.brand;
+      paneSeries.lineStyle = { width: 1.6, color: lineColor };
+      paneSeries.itemStyle = { color: lineColor };
+      // Area tra la linea e lo zero (es. drawdown), dello stesso colore ma trasparente.
+      if (pane.area) paneSeries.areaStyle = { color: lineColor, opacity: 0.18 };
     }
     // Fasce colorate di sfondo (es. zone dell'MVRV Z-Score)
     if (pane.zones) {
@@ -315,7 +372,7 @@ OT.charts = (function () {
     const dateMin = o.dates[0];
     const dateMax = o.dates[o.dates.length - 1];
 
-    return create(container, {
+    const chart = create(container, {
       animation: false,
       // Con molti punti ECharts disegna le evidenziazioni del mouse su un livello
       // separato che, zoomando o trascinando, restava "sporco" (copie sovrapposte
@@ -357,6 +414,10 @@ OT.charts = (function () {
       visualMap: visualMap,
       series: series,
     });
+    // Scala del prezzo adattata allo zoom, comprese le linee sovrapposte (es. CVDD).
+    const lists = [o.price].concat((o.overlays || []).map(function (x) { return x.data; }));
+    fitPriceAxis(chart, o.dates, lists);
+    return chart;
   }
 
   /**
@@ -397,5 +458,6 @@ OT.charts = (function () {
     create: create, themeColors: themeColors, cssColor: cssColor,
     semicircle: semicircle, priceWithPane: priceWithPane, firstDate: firstDate,
     recentBars: recentBars, priceArea: priceArea,
+    timeLabel: timeLabel, shortUsd: shortUsd, fitPriceAxis: fitPriceAxis,
   };
 })();

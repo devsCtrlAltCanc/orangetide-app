@@ -30,6 +30,7 @@ const APP_FILES = [
   "js/app.js",
   "js/charts.js",
   "js/dashboard.js",
+  "js/storico.js",
   "js/graphs.js",
   "js/info.js",
   "js/settings.js",

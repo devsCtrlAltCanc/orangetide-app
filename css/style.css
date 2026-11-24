@@ -206,8 +206,11 @@ body {
 }
 .ot-round-button:hover { color: var(--ot-brand); }
 
-/* "Pillola" di testo (es. data dei dati) */
+/* "Pillola" di testo (es. data dell'ultimo aggiornamento) */
+.ot-chip-stale { background: var(--ot-brand-soft) !important; color: var(--ot-brand-text) !important; }
 .ot-chip {
+  display: inline-flex;
+  white-space: nowrap;
   align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.75rem;
@@ -646,3 +649,84 @@ body {
 }
 .ot-steps { padding-left: 1.2rem; font-size: 0.9rem; }
 .ot-steps li { margin-bottom: 0.45rem; }
+
+/* ------------------------------------------------------------
+   19. PAGINA STORICO: pulsanti di scelta, grafico dei segnali
+   ------------------------------------------------------------ */
+/* Barra con i gruppi di pulsanti (orizzonte, giornaliero/settimanale...):
+   su telefono vanno a capo, su schermi larghi stanno ai due lati */
+.ot-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.ot-choice { justify-content: flex-start; flex-wrap: wrap; margin-bottom: 0; }
+
+/* Grafico prezzo + strisce dei segnali: più alto degli altri */
+.ot-chart-signals { height: 520px; }
+@media (max-width: 575.98px) {
+  .ot-chart-signals { height: 440px; }
+}
+
+/* ------------------------------------------------------------
+   20. TABELLE DEL BACKTEST
+   ------------------------------------------------------------ */
+.ot-bt-period { margin: 0.25rem 0 0.75rem; }
+.ot-select {
+  max-width: 340px;
+  margin-bottom: 0.75rem;
+  background-color: var(--ot-tile);
+  border-color: var(--ot-border);
+  color: var(--ot-text);
+  border-radius: 0.7rem;
+}
+.ot-bt-section + .ot-bt-section { margin-top: 1.5rem; }
+.ot-bt-title { font-size: 1.05rem; font-weight: 800; margin: 0 0 0.5rem; }
+.ot-bt-block { margin-bottom: 1rem; }
+.ot-bt-caption { font-size: 0.85rem; font-weight: 700; color: var(--ot-muted); margin-bottom: 0.35rem; }
+
+/* Pillole dei criteri di SPEC 5.2 (✓ / ✗) */
+.ot-criteria { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
+
+/* Contenitore che scorre in orizzontale: su telefono la tabella è più
+   larga dello schermo e si sposta col dito senza allargare la pagina */
+.ot-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ot-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;     /* cifre tutte della stessa larghezza */
+  white-space: nowrap;
+}
+.ot-table th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ot-muted);
+  text-align: right;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--ot-border);
+}
+.ot-table td {
+  text-align: right;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--ot-border);
+}
+.ot-table th:first-child,
+.ot-table td:first-child { text-align: left; }
+.ot-table tr:last-child td { border-bottom: 0; }
+/* Riga "Tutti i giorni" (riferimento): fondo leggermente diverso */
+.ot-table tbody tr:last-child td { background: var(--ot-tile); }
+/* Colonna della metrica usata nei criteri (media geometrica) */
+.ot-table .ot-hl { font-weight: 800; }
+.ot-table th.ot-hl { color: var(--ot-brand-text); }
+.ot-pos { color: var(--ot-buy); }
+.ot-neg { color: var(--ot-sell); }
+/* Riga con pochi episodi: attenuata */
+.ot-faint td { opacity: 0.5; }
+.ot-sub { font-size: 0.7rem; color: var(--ot-muted); }
+.ot-bt-notes { padding-left: 1.1rem; margin: 0.5rem 0 0; }
+.ot-bt-notes li { margin-bottom: 0.25rem; }

@@ -173,6 +173,46 @@ window.OT_CONFIG = {
     // analisi): sotto 0 = sottovalutato, sopra 7 = sopravvalutato.
     mvrvZones: { low: 0, high: 7 },
     defaultZoomYears: 4,           // periodo mostrato all'apertura (poi si zooma liberamente)
+    // Spazio sopra e sotto il prezzo nella scala adattata allo zoom
+    // (0.15 = 15% oltre il massimo e sotto il minimo visibili).
+    priceAxisMargin: 0.15,
+  },
+
+  // ------------------------------------------------------------
+  // PAGINA STORICO (SPEC 11.2)
+  // ------------------------------------------------------------
+  history: {
+    defaultHorizon: "long",        // orizzonte che colora il prezzo all'apertura
+    defaultFrequency: "daily",     // "daily" = un punto al giorno; "weekly" = segnale di fine settimana
+    // Giorno di fine settimana per la vista settimanale (giorno UTC):
+    // 0 = domenica, 1 = lunedì, ... 6 = sabato.
+    weekEndDay: 0,
+  },
+
+  // Nomi brevi degli indicatori, per il riquadro che segue il cursore
+  // (chiave = id dell'indicatore nei JSON del core).
+  indicatorShortNames: {
+    B1_etf_flow_5d: "ETF 5g",
+    B2_funding_7d: "Funding",
+    B3_fear_greed: "F&G",
+    B4_rsi_14: "RSI",
+    M1_etf_flow_30d: "ETF 30g",
+    M2_price_vs_ma50: "MA50",
+    M3_stablecoin_30d: "Stablecoin",
+    M4_dollar_trend: "Dollaro",
+    L1_mvrv_zscore: "MVRV Z",
+    L2_mayer_multiple: "Mayer",
+    L3_ma200w_distance: "MA 200 sett.",
+    L4_days_since_halving: "Halving",
+  },
+
+  // Tabelle del backtest (SPEC 5.2, 5.4, 16.1).
+  backtest: {
+    defaultPeriod: "validation",   // periodo mostrato all'apertura
+    defaultView: "horizon",        // "horizon", "indicator" o "risk"
+    // Sotto questo numero di episodi indipendenti una riga è mostrata
+    // attenuata: la statistica si basa su troppi pochi casi.
+    fewEpisodes: 5,
   },
 
   // ------------------------------------------------------------
@@ -197,6 +237,7 @@ window.OT_CONFIG = {
 
     dataAsOf: "Dati al",
     updatedAt: "aggiornati",
+    lastUpdate: "Ultimo aggiornamento dei dati",
     showDetails: "Dettaglio indicatori",
     convenience: "Convenienza",
     agreement: "Accordo",
@@ -267,6 +308,51 @@ window.OT_CONFIG = {
       staleData: "Dati vecchi: ultimo aggiornamento {date}.",
       newVersion: "Nuova versione dell'app disponibile.",
       update: "Aggiorna",
+    },
+
+    // Pagina Storico (storico.js).
+    storico: {
+      daily: "Giornaliero",
+      weekly: "Settimanale",
+      price: "Prezzo",
+      convenienceShort: "conv.",
+      agreementShort: "accordo",
+      chartNote: "Il colore del prezzo segue il segnale dell'orizzonte scelto: verde = BUY, grigio = HOLD, rosso = SELL. Le tre strisce sotto mostrano i segnali di tutti gli orizzonti. Tocca o passa sul grafico per il dettaglio del giorno; zoom con due dita, con la rotellina o con la barra in basso.",
+      weeklyNote: "Vista settimanale: un punto per settimana, con il segnale di fine settimana.",
+      drawdownNote: "Quanto il prezzo è sotto il massimo storico raggiunto fino a quel giorno (SPEC 16.3). 0% = nuovo massimo.",
+    },
+
+    // Tabelle del backtest (storico.js, widget backtestTables).
+    backtest: {
+      periods: { calibration: "Taratura", validation: "Verifica", full: "Tutto" },
+      views: { horizon: "Orizzonti", indicator: "Indicatori", risk: "Indice di rischio" },
+      // Testo del periodo: "dal 01/01/2023 a oggi", "dall'inizio dei dati al 31/12/2022".
+      rangeFrom: "dal {date}",
+      rangeFromStart: "dall'inizio dei dati",
+      rangeTo: "al {date}",
+      rangeToToday: "a oggi",
+      forwardTitle: "Rendimenti a {days} giorni",
+      columns: {
+        group: "Segnale", level: "Livello", band: "Fascia",
+        days: "Giorni", episodes: "episodi",
+        geo: "Media geom.", median: "Mediana", mean: "Media",
+        drop: "Ribasso max", hit: "Direzione giusta",
+      },
+      allDays: "Tutti i giorni",
+      // Criteri di SPEC 5.2 (chiavi = campi di backtest.json "criteria").
+      criteria: {
+        order: "BUY > HOLD > SELL",
+        buy_vs_all: "BUY batte il riferimento",
+        buy_hit: "BUY nella direzione giusta > 50%",
+        sell_hit: "SELL nella direzione giusta > 50%",
+      },
+      indicatorLabel: "Indicatore",
+      notes: [
+        "Media geom. = rendimento medio composto, la metrica usata per giudicare l'ordine BUY > HOLD > SELL (SPEC 5.2). Ribasso max = mediana del calo massimo prima della fine della finestra (SPEC 16.2).",
+        "Direzione giusta = % di giorni con rendimento > 0 dopo un BUY (o livello positivo) e < 0 dopo un SELL (o livello negativo).",
+        "I giorni consecutivi condividono quasi lo stesso futuro: conta il numero di episodi, non quello dei giorni. Le righe attenuate hanno meno di {n} episodi.",
+      ],
+      riskNote: "Fasce dell'indice di rischio (SPEC 16.1): se l'indice funziona, le fasce basse rendono più di quelle alte.",
     },
 
     // Nomi leggibili delle fonti (chiave = "source" in meta.json).

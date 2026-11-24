@@ -214,14 +214,29 @@ OT.app.updateThemeButton = function () {
   button.title = "Tema: " + labels[choice];
 };
 
-/** Mostra nella barra in alto la data dei dati (da latest.json). */
+/**
+ * Mostra nella barra in alto quando è avvenuto l'ultimo aggiornamento
+ * (meta.json: generated_at) e a che giorno arrivano i dati.
+ *   PC:       "Dati al 22/11/2026 · aggiornati 24/11, 04:19"
+ *   telefono: "aggiornati 24/11, 04:19" (la parte "Dati al" è nascosta)
+ * Se l'aggiornamento è più vecchio di alerts.staleDataHours la pillola
+ * diventa arancione (c'è anche l'avviso in alto).
+ */
 OT.app.showDataDate = async function () {
+  const chip = document.getElementById("data-date");
   try {
-    const latest = await OT.data.load("latest");
-    document.getElementById("data-date").innerHTML =
-      `<i class="bi bi-calendar3"></i> ${OT_CONFIG.texts.dataAsOf} ${OT.fmt.date(latest.data.date)}`;
+    const meta = (await OT.data.load("meta")).data;
+    const updated = new Date(meta.generated_at);
+    const when = updated.toLocaleString(OT_CONFIG.locale,
+      { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    chip.innerHTML = `<i class="bi bi-arrow-repeat"></i>
+      <span class="d-none d-md-inline">${OT_CONFIG.texts.dataAsOf} ${OT.fmt.date(meta.data_date)} ·</span>
+      <span>${OT_CONFIG.texts.updatedAt} ${when}</span>`;
+    chip.title = `${OT_CONFIG.texts.lastUpdate}: ${OT.fmt.dateTime(meta.generated_at)}`;
+    const hours = (Date.now() - updated) / 3600000;          // ms -> ore
+    chip.classList.toggle("ot-chip-stale", hours > OT_CONFIG.alerts.staleDataHours);
   } catch (error) {
-    // Nessun dato: la pillola resta vuota (i widget mostrano l'errore).
+    chip.innerHTML = "";   // nessun dato: la pillola non si mostra (i widget spiegano l'errore)
   }
 };
 
