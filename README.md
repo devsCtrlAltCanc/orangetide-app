@@ -4,9 +4,10 @@ Interfaccia di OrangeTide: una **PWA** (app web installabile) che mostra i
 dati calcolati da `orangetide-core`. Questo repository è **pubblico** e non
 contiene dati né token (SPEC 6).
 
-> **Stato (v0.5.1):** Fase 4 in corso. Pronte tutte le pagine: Dashboard,
+> **Stato (v0.5.1):** Fase 4 completata. Pronte tutte le pagine: Dashboard,
 > Storico, Backtest, Cicli, Grafici, Info, Impostazioni (token GitHub) e
-> avvisi. Da fare: pubblicazione su GitHub Pages e prova su iPhone.
+> avvisi. Pubblicata su GitHub Pages, installata e provata su PC (Edge) e
+> iPhone (Safari) il 2026-11-24.
 
 ---
 
