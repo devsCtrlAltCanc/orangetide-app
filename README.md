@@ -4,8 +4,8 @@ Interfaccia di OrangeTide: una **PWA** (app web installabile) che mostra i
 dati calcolati da `orangetide-core`. Questo repository è **pubblico** e non
 contiene dati né token (SPEC 6).
 
-> **Stato (v0.2.0):** Fase 4 in corso. Pronte: Dashboard, Storico, Backtest,
-> Grafici, Impostazioni (token GitHub) e avvisi. Da fare: Cicli, Info
+> **Stato (v0.3.0):** Fase 4 in corso. Pronte: Dashboard, Storico, Backtest,
+> Cicli, Grafici, Impostazioni (token GitHub) e avvisi. Da fare: Info
 > (metodo, crediti, avvertenza), pubblicazione su GitHub Pages.
 
 ---
@@ -43,7 +43,7 @@ da iPhone: in arrivo nel passo 2).
 | `js/config.js` | **tutta** la configurazione: sorgente dati, versione, pagine, colori, testi |
 | `js/data.js` | caricamento dei JSON e copia di riserva sul dispositivo |
 | `js/app.js` | avvio, navigazione, tema, formattazione, registro dei widget |
-| `js/dashboard.js`, `js/storico.js`, `js/backtest.js`, `js/graphs.js`, `js/info.js`, `js/settings.js` | i widget di ogni pagina |
+| `js/dashboard.js`, `js/storico.js`, `js/backtest.js`, `js/cicli.js`, `js/graphs.js`, `js/info.js`, `js/settings.js` | i widget di ogni pagina |
 | `manifest.json` | nome, icone e colori dell'app installata |
 | `service-worker.js` | copia dell'interfaccia per l'uso offline e gestione versioni |
 | `icons/` | icone dell'app |

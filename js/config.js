@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.2.0",
+  version: "0.3.0",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".
@@ -108,7 +108,7 @@ window.OT_CONFIG = {
     },
     {
       id: "cicli", title: "Cicli", icon: "bi-arrow-repeat", nav: "main",
-      widgets: ["halvingRoiChart", "peakRoiChart"],
+      widgets: ["halvingRoiChart", "peakRoiChart", "cycleTable"],
     },
     {
       id: "grafici", title: "Grafici", icon: "bi-bar-chart-line", nav: "main",
@@ -208,6 +208,16 @@ window.OT_CONFIG = {
     L2_mayer_multiple: "Mayer",
     L3_ma200w_distance: "MA 200 sett.",
     L4_days_since_halving: "Halving",
+  },
+
+  // Pagina Cicli (SPEC 16.4).
+  cycles: {
+    defaultScale: "log",           // "log" o "linear": scala verticale all'apertura
+    // Colori delle epoche passate, dalla più vecchia alla più recente;
+    // l'epoca in corso usa sempre colors.brand (arancione).
+    pastColors: ["#9B6BDF", "#5B8DEF", "#2BB3A3", "#8A8F98"],
+    lineWidth: 1.6,                // spessore delle curve passate
+    currentLineWidth: 2.8,         // spessore della curva in corso
   },
 
   // Tabelle del backtest (SPEC 5.2, 5.4, 16.1).
@@ -326,7 +336,34 @@ window.OT_CONFIG = {
       drawdownNote: "Quanto il prezzo è sotto il massimo storico raggiunto fino a quel giorno (SPEC 16.3). 0% = nuovo massimo.",
     },
 
-    // Tabelle del backtest (storico.js, widget backtestTables).
+    // Pagina Cicli (cicli.js).
+    cicli: {
+      scaleLog: "Logaritmica",
+      scaleLinear: "Lineare",
+      daysFromHalving: "giorni dall'halving",
+      daysFromPeak: "giorni dal massimo",
+      day: "Giorno",
+      epoch: "Epoca",          // "Epoca 2020"
+      cycle: "Ciclo",          // "Ciclo dic 2017"
+      today: "oggi",
+      peakMarker: "massimo",
+      bottomMarker: "minimo",
+      halvingNote: "Rendimento dal giorno dell'halving, per ogni epoca (l'arancione è quella in corso). Il punto segna il massimo di ciclo: la chiusura più alta nei primi 730 giorni dall'halving (SPEC 16.4). In scala logaritmica 2× = +100%, 4× = +300%.",
+      peakNote: "Rendimento dal massimo di ciclo fino al massimo successivo. Il punto segna il minimo raggiunto dopo il massimo.",
+      table: {
+        epoch: "Epoca",
+        peak: "Massimo di ciclo",
+        peakRoi: "Dall'halving",
+        bottom: "Minimo successivo",
+        bottomDrop: "Calo",
+        dayAfterHalving: "giorno {n}",
+        daysAfterPeak: "{n} giorni dopo",
+        soFar: "finora",
+        ongoing: "in corso",
+      },
+    },
+
+    // Tabelle del backtest (backtest.js, widget backtestTables).
     backtest: {
       periods: { calibration: "Taratura", validation: "Verifica", full: "Tutto" },
       views: { horizon: "Orizzonti", indicator: "Indicatori", risk: "Indice di rischio" },
