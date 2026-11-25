@@ -88,11 +88,11 @@ OT.fmt = {
     return d.toLocaleDateString(OT_CONFIG.locale, { timeZone: "UTC" });
   },
 
-  /** Data e ora ISO -> "23/11/2026, 04:19" (ora locale del dispositivo). */
+  /** Data e ora ISO -> "23/11/2026, 04:19" (ora locale del dispositivo, anno a 4 cifre). */
   dateTime: function (isoDateTime) {
     if (!isoDateTime) return "n/d";
     return new Date(isoDateTime).toLocaleString(OT_CONFIG.locale, {
-      dateStyle: "short", timeStyle: "short",
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
     });
   },
 };
@@ -265,10 +265,11 @@ OT.app.updateThemeButton = function () {
 /**
  * Mostra nella barra in alto quando è avvenuto l'ultimo aggiornamento
  * (meta.json: generated_at) e a che giorno arrivano i dati.
- *   PC:       "Dati al 22/11/2026 · aggiornati 24/11, 04:19"
- *   tablet:   "aggiornati 24/11, 04:19" (la parte "Dati al" è nascosta)
- *   telefono: solo "24/11, 04:19", senza icona (spazio per logo, pulsante
- *             "Aggiorna dati" e pulsante del tema anche sugli schermi più stretti)
+ *   PC:       "Dati al 22/11/2026 · aggiornati 24/11/2026, 04:19" (SPEC 11.1)
+ *   tablet:   "aggiornati 24/11/2026, 04:19" (la parte "Dati al" è nascosta)
+ *   telefono: solo "24/11, 04:19", senza icona e senza anno (spazio per logo,
+ *             pulsante "Aggiorna dati" e pulsante del tema anche sugli schermi
+ *             più stretti); la data completa è nel riquadro del prezzo
  * Le classi d-none / d-sm-inline / d-md-inline di Bootstrap nascondono o
  * mostrano un pezzo di testo secondo la larghezza dello schermo.
  * Se l'aggiornamento è più vecchio di alerts.staleDataHours la pillola
@@ -279,11 +280,14 @@ OT.app.showDataDate = async function () {
   try {
     const meta = (await OT.data.load("meta")).data;
     const updated = new Date(meta.generated_at);
-    const when = updated.toLocaleString(OT_CONFIG.locale,
-      { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    // Pezzi della data, scritti all'italiana: giorno/mese, anno, ora.
+    const part = function (options) { return updated.toLocaleString(OT_CONFIG.locale, options); };
+    const dayMonth = part({ day: "2-digit", month: "2-digit" });
+    const year = part({ year: "numeric" });
+    const time = part({ hour: "2-digit", minute: "2-digit" });
     chip.innerHTML = `<i class="bi bi-clock-history d-none d-sm-inline"></i>
       <span class="d-none d-md-inline">${OT_CONFIG.texts.dataAsOf} ${OT.fmt.date(meta.data_date)} ·</span>
-      <span><span class="d-none d-sm-inline">${OT_CONFIG.texts.updatedAt} </span>${when}</span>`;
+      <span><span class="d-none d-sm-inline">${OT_CONFIG.texts.updatedAt} </span>${dayMonth}<span class="d-none d-sm-inline">/${year}</span>, ${time}</span>`;
     chip.title = `${OT_CONFIG.texts.lastUpdate}: ${OT.fmt.dateTime(meta.generated_at)}`;
     const hours = (Date.now() - updated) / 3600000;          // ms -> ore
     chip.classList.toggle("ot-chip-stale", hours > OT_CONFIG.alerts.staleDataHours);

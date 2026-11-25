@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.6.1",
+  version: "0.7.0",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".
@@ -72,6 +72,13 @@ window.OT_CONFIG = {
     findRunAttempts: 10,      // ... e per quante volte al massimo (10 × 3 = 30 secondi)
     doneHideSeconds: 8,       // il messaggio "completato" sparisce dopo N secondi
     includedMinutes: 2000,    // minuti di Actions inclusi ogni mese nel piano gratuito (repository privati)
+    // Aggiornamento automatico (SPEC 11.7):
+    onOpenDefault: true,      // "Aggiorna all'apertura" se non è mai stato scelto su questo dispositivo
+    hoursVariable: "UPDATE_HOURS",            // variabile del repository del core con le ore UTC di turno
+    defaultHours: "3,7,11,15,19,23",          // valore se la variabile non esiste (deve uguagliare update.yml)
+    firstHourUtc: 3,          // prima ora di turno (UTC): il giorno UTC precedente è chiuso
+    scheduleMinute: 19,       // minuto degli avvii programmati (cron di update.yml)
+    minutesPerRun: 1,         // minuti di Actions stimati per un aggiornamento (per la stima mensile)
   },
 
   // Nomi dei 4 file JSON prodotti dal core (SPEC 9.1).
@@ -134,7 +141,7 @@ window.OT_CONFIG = {
     },
     {
       id: "impostazioni", title: "Impostazioni", icon: "bi-gear", nav: "more",
-      widgets: ["tokenSettings", "preferences", "tokenGuide"],
+      widgets: ["tokenSettings", "preferences", "autoUpdate", "tokenGuide"],
     },
   ],
 
@@ -357,8 +364,28 @@ window.OT_CONFIG = {
       local: "Con i dati locali (PC) l'aggiornamento si fa con scripts\\update.py nel core.",
       noToken: "Per aggiornare i dati serve il token GitHub.",
       permission: "Il token non ha il permesso Actions: aggiungilo su GitHub (Actions: Read and write).",
+      permissionVariables: "Il token non ha il permesso Variables: aggiungilo su GitHub (Variables: Read and write).",
       rejected: "Token non valido o scaduto: aggiornalo in Impostazioni.",
       other: "Aggiornamento non riuscito.",
+    },
+    // Riquadro "Aggiornamento automatico" (settings.js, SPEC 11.5 e 11.7).
+    autoUpdate: {
+      everyTitle: "Aggiorna ogni N ore",
+      everyScope: "su GitHub · vale per tutti i dispositivi",
+      everyHelp: "GitHub aggiorna i dati da solo, anche con l'app chiusa. Gli orari partono dalle 03:19 UTC, quando il giorno precedente è chiuso.",
+      hoursLabel: "Ogni",
+      hoursUnit: "ore",
+      save: "Salva",
+      saving: "Salvataggio…",
+      saved: "Salvato su GitHub: vale da subito per tutti i dispositivi.",
+      invalid: "Inserisci un numero intero da 1 a 24.",
+      times: "Orari (ora di questo dispositivo)",
+      estimate: "circa {runs} aggiornamenti e {minutes} minuti di Actions al mese",
+      notSet: "Valore iniziale: la variabile su GitHub non esiste ancora (si crea al primo salvataggio).",
+      local: "Con i dati locali (PC) non c'è aggiornamento automatico su GitHub.",
+      openTitle: "Aggiorna all'apertura",
+      openScope: "solo su questo dispositivo",
+      openHelp: "All'apertura dell'app avvia l'aggiornamento solo se i dati del giorno non sono ancora arrivati (per esempio se GitHub ha saltato gli orari). Per aggiornare in qualunque momento c'è il pulsante ↻ in alto.",
     },
     banners: {
       tokenMissing: "Per leggere i dati serve il token GitHub.",

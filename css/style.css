@@ -659,6 +659,12 @@ body {
 @keyframes ot-spin { to { transform: rotate(360deg); } }
 .ot-spin, .ot-spinning i { display: inline-block; animation: ot-spin 1s linear infinite; }
 .ot-round-button:disabled { opacity: 0.6; cursor: default; }
+/* Impostazioni → Aggiornamento automatico: due riquadri affiancati su PC */
+.ot-auto-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.8rem; }
+@media (min-width: 768px) { .ot-auto-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ot-hours-input { width: 5rem; }
+/* Interruttore acceso: arancione come il resto dell'app */
+.form-check-input:checked { background-color: var(--ot-brand); border-color: var(--ot-brand); }
 
 /* La pillola della data non si mostra finché è vuota (dati non ancora letti) */
 .ot-chip:empty { display: none !important; }

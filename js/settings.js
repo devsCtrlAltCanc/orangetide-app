@@ -4,6 +4,8 @@
 // Widget definiti qui:
 //   tokenSettings  inserimento, verifica e rimozione del token GitHub
 //   preferences    tema, sorgente dei dati, copie salvate sul dispositivo
+//   autoUpdate     aggiornamento automatico: ogni N ore (su GitHub, condiviso)
+//                  e all'apertura (solo su questo dispositivo), SPEC 11.7
 //   tokenGuide     come creare e rinnovare il token (passo per passo)
 //
 // Il token si salva solo su questo dispositivo (vedi auth.js).
@@ -148,6 +150,146 @@ OT.registerWidget("preferences", {
 });
 
 // ============================================================
+// WIDGET autoUpdate — AGGIORNAMENTO AUTOMATICO (SPEC 11.5, 11.7)
+// ============================================================
+/**
+ * Orari di turno nell'ora di questo dispositivo, in ordine: "04:19, 08:19, …".
+ * Date.UTC crea un istante a partire da ora e minuto UTC di oggi;
+ * toLocaleTimeString lo scrive nel fuso orario del dispositivo.
+ * @param {number[]} hours  ore UTC
+ */
+function localTimes(hours) {
+  const now = new Date();
+  const minute = OT_CONFIG.refresh.scheduleMinute;
+  const times = hours.map(function (h) {
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h, minute));
+  });
+  // sort con una funzione di confronto: ordina per ora del giorno locale.
+  times.sort(function (a, b) {
+    return (a.getHours() * 60 + a.getMinutes()) - (b.getHours() * 60 + b.getMinutes());
+  });
+  return times.map(function (d) {
+    return d.toLocaleTimeString(OT_CONFIG.locale, { hour: "2-digit", minute: "2-digit" });
+  }).join(", ");
+}
+
+/**
+ * Dettaglio sotto l'intervallo: orari locali e stima mensile.
+ * @param {number} n  intervallo in ore
+ */
+function intervalDetails(n) {
+  const a = OT_CONFIG.texts.autoUpdate;
+  const hours = OT.actions.hoursForInterval(n);
+  const runs = hours.length * 30;                       // circa 30 giorni al mese
+  const minutes = runs * OT_CONFIG.refresh.minutesPerRun;
+  const estimate = a.estimate.replace("{runs}", OT.fmt.number(runs, 0)).replace("{minutes}", OT.fmt.number(minutes, 0));
+  return `${a.times}: <b>${localTimes(hours)}</b><br>${estimate}`;
+}
+
+OT.registerWidget("autoUpdate", {
+  title: "Aggiornamento automatico",
+  size: "full",
+  needs: [],
+
+  render: function (body) {
+    const a = OT_CONFIG.texts.autoUpdate;
+    // Scelta del dispositivo: interruttore di Bootstrap (form-switch).
+    const checked = OT.actions.getOnOpen() ? "checked" : "";
+    body.innerHTML = `
+      <div class="ot-auto-grid">
+        <div class="ot-tile">
+          <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-1">
+            <span class="ot-strong">${a.everyTitle}</span>
+            <span class="ot-badge ot-badge-brand"><i class="bi bi-github"></i> ${a.everyScope}</span>
+          </div>
+          <div class="ot-muted small mb-3">${a.everyHelp}</div>
+          <div id="ot-interval" class="small"><span class="ot-muted">${OT_CONFIG.texts.loading}</span></div>
+        </div>
+        <div class="ot-tile">
+          <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-1">
+            <span class="ot-strong">${a.openTitle}</span>
+            <span class="ot-badge ot-badge-hold"><i class="bi bi-phone"></i> ${a.openScope}</span>
+          </div>
+          <div class="ot-muted small mb-3">${a.openHelp}</div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="ot-on-open" ${checked}>
+            <label class="form-check-label" for="ot-on-open">${a.openTitle}</label>
+          </div>
+        </div>
+      </div>`;
+
+    // "change" = l'interruttore è stato spostato: si salva subito.
+    body.querySelector("#ot-on-open").addEventListener("change", function (event) {
+      OT.actions.setOnOpen(event.target.checked);
+    });
+    showInterval(body.querySelector("#ot-interval"));
+  },
+});
+
+/**
+ * Legge da GitHub l'intervallo e mostra il campo per cambiarlo.
+ * @param {HTMLElement} box
+ */
+async function showInterval(box) {
+  const a = OT_CONFIG.texts.autoUpdate;
+  if (OT.data.source() === "local") {
+    box.innerHTML = `<span class="ot-muted">${a.local}</span>`;
+    return;
+  }
+  let current;
+  try {
+    current = await OT.actions.readInterval();
+  } catch (error) {
+    // Senza token o senza permesso Variables: lo si spiega (niente campo).
+    box.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${OT.escape(error.message)}</span>`;
+    return;
+  }
+  const n = current.n || 4;
+  box.innerHTML = `
+    <form class="d-flex align-items-center gap-2 flex-wrap" novalidate>
+      <label for="ot-hours-input">${a.hoursLabel}</label>
+      <input type="number" class="form-control ot-hours-input" id="ot-hours-input" min="1" max="24" step="1" value="${n}" inputmode="numeric">
+      <span>${a.hoursUnit}</span>
+      <button type="submit" class="btn btn-sm ot-btn-brand ms-auto"><i class="bi bi-cloud-upload"></i> ${a.save}</button>
+    </form>
+    <div class="ot-muted mt-2" id="ot-interval-details">${intervalDetails(n)}</div>
+    ${current.isDefault ? `<div class="ot-muted mt-1 fst-italic ot-interval-default">${a.notSet}</div>` : ""}
+    <div class="mt-2" id="ot-interval-result"></div>`;
+
+  const input = box.querySelector("#ot-hours-input");
+  const details = box.querySelector("#ot-interval-details");
+  const result = box.querySelector("#ot-interval-result");
+  /** Valore del campo se è un intero da 1 a 24, altrimenti null. */
+  function value() {
+    const v = Number(input.value);
+    return Number.isInteger(v) && v >= 1 && v <= 24 ? v : null;
+  }
+  // "input" = a ogni cifra digitata: si aggiornano subito orari e stima.
+  input.addEventListener("input", function () {
+    result.innerHTML = "";
+    if (value() !== null) details.innerHTML = intervalDetails(value());
+  });
+  box.querySelector("form").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const v = value();
+    if (v === null) {
+      result.innerHTML = `<span class="text-danger">${a.invalid}</span>`;
+      return;
+    }
+    result.innerHTML = `<span class="ot-muted">${a.saving}</span>`;
+    try {
+      await OT.actions.saveInterval(v);
+      // La variabile ora esiste: la nota "valore iniziale" non serve più.
+      const note = box.querySelector(".ot-interval-default");
+      if (note) note.remove();
+      result.innerHTML = `<span class="ot-pos"><i class="bi bi-check-circle"></i> ${a.saved}</span>`;
+    } catch (error) {
+      result.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${OT.escape(error.message)}</span>`;
+    }
+  });
+}
+
+// ============================================================
 // WIDGET tokenGuide — COME CREARE E RINNOVARE IL TOKEN
 // ============================================================
 OT.registerWidget("tokenGuide", {
@@ -163,8 +305,8 @@ OT.registerWidget("tokenGuide", {
         <li>Apri <a href="${t.createUrl}" target="_blank" rel="noopener">GitHub → Fine-grained tokens → Generate new token</a> (accedi con l'account <b>${OT.escape(gh.owner)}</b>).</li>
         <li><b>Token name</b>: per esempio "OrangeTide ${new Date().getFullYear()}". <b>Expiration</b>: la durata che preferisci (al massimo un anno).</li>
         <li><b>Repository access</b> → <i>Only select repositories</i> → scegli solo <b>${OT.escape(gh.repo)}</b>.</li>
-        <li><b>Permissions</b> → <i>Repository permissions</i> → <b>Contents: Read-only</b> (per leggere i dati) e <b>Actions: Read and write</b> (per il pulsante <i>Aggiorna dati</i> e il contatore dei minuti in Info). Nessun altro permesso.</li>
-        <li>Premi <b>Generate token</b>, copia il token (inizia con <code>github_pat_</code>) e annota la data di scadenza mostrata.</li>
+        <li><b>Permissions</b> → <i>Repository permissions</i> → <b>Contents: Read-only</b> (per leggere i dati), <b>Actions: Read and write</b> (pulsante <i>Aggiorna dati</i> e contatore dei minuti in Info) e <b>Variables: Read and write</b> (<i>Aggiorna ogni N ore</i>). Nessun altro permesso.</li>
+        <li>Premi <b>Generate token</b>, copia il token (inizia con <code>github_pat_</code>) e annota la data di scadenza mostrata. <b>GitHub mostra il token solo adesso</b>: salvalo subito in un gestore di password.</li>
         <li>Incollalo qui sopra con la data e premi <b>Verifica e salva</b>. Su iPhone fallo <b>dentro l'app installata</b>: ha una memoria separata da Safari.</li>
         <li>Conservalo in un gestore di password (es. Portachiavi iCloud) per reinserirlo sugli altri dispositivi.</li>
       </ol>
@@ -176,6 +318,10 @@ OT.registerWidget("tokenGuide", {
       <div class="small ot-muted mt-2">
         <b>Aggiungere un permesso a un token esistente</b> (es. Actions): sulla stessa pagina apri il token → <i>Edit</i>,
         cambia i permessi e salva. Il token resta lo stesso: non serve reinserirlo nell'app.
+      </div>
+      <div class="small ot-muted mt-2">
+        <b>Token perso su un dispositivo</b> (es. dati del browser cancellati o rovinati): crea un <b>nuovo</b> token
+        per quel dispositivo invece di rigenerare quello esistente, che smetterebbe di funzionare anche sugli altri.
       </div>`;
   },
 });

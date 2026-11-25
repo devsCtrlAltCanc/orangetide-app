@@ -4,7 +4,7 @@ Interfaccia di OrangeTide: una **PWA** (app web installabile) che mostra i
 dati calcolati da `orangetide-core`. Questo repository è **pubblico** e non
 contiene dati né token (SPEC 6).
 
-> **Stato (v0.6.1):** Fase 4 completata. Pronte tutte le pagine: Dashboard,
+> **Stato (v0.7.0):** Fase 4 completata. Pronte tutte le pagine: Dashboard,
 > Storico, Backtest, Cicli, Grafici, Info, Impostazioni (token GitHub) e
 > avvisi. Pubblicata su GitHub Pages, installata e provata su PC (Edge) e
 > iPhone (Safari) il 2026-11-24.
@@ -56,12 +56,16 @@ salvato solo sul dispositivo (SPEC 6.1).
    - **Actions: Read and write** — per il pulsante **↻ Aggiorna dati** e il
      contatore dei minuti di Actions nella pagina Info (SPEC 6.1, 11.7).
      Permette di avviare e annullare l'aggiornamento, non di modificare
-     codice o dati.
+     codice o dati;
+   - **Variables: Read and write** — per "Aggiorna ogni N ore" in
+     Impostazioni (variabile `UPDATE_HOURS` del core; non dà accesso ai
+     segreti come la chiave FRED).
 
    Nessun altro permesso. Per aggiungere un permesso a un token già creato:
    aprirlo su GitHub → *Edit* → cambiare i permessi → salvare (il token resta
    lo stesso, non va reinserito nell'app).
-5. **Generate token** e copiarlo (inizia con `github_pat_`).
+5. **Generate token** e copiarlo (inizia con `github_pat_`). **GitHub lo
+   mostra solo adesso**: dopo non si può più rivedere.
 6. Conservarlo in un gestore di password (es. Portachiavi iCloud): servirà
    per inserirlo su ogni dispositivo.
 
@@ -87,6 +91,23 @@ su GitHub lo stesso aggiornamento della notte (circa 2–4 minuti). Sotto la
 barra compare lo stato ("in corso…", poi "completato" o "terminato con
 errori"); alla fine l'app ricarica i dati da sola. Se un aggiornamento è già
 in corso (anche quello notturno) non ne parte un altro: l'app segue quello.
+
+### Aggiornamento automatico (Impostazioni)
+
+- **Aggiorna ogni N ore** (da 1 a 24) — salvato **su GitHub**, vale per tutti
+  i dispositivi e anche con l'app chiusa. Gli orari partono dalle 03:19 UTC;
+  la pagina li mostra nell'ora del dispositivo con la stima dei minuti di
+  Actions al mese. Valore iniziale: ogni 4 ore.
+- **Aggiorna all'apertura** — vale **solo su quel dispositivo**. Aprendo
+  l'app, se i dati del giorno non sono ancora arrivati (GitHub ha saltato gli
+  orari), parte l'aggiornamento.
+
+### Token perso su un dispositivo
+
+Se su un dispositivo il token salvato si perde (dati del browser cancellati o
+rovinati), creare un **nuovo** token per quel dispositivo, con gli stessi
+permessi: rigenerare quello esistente lo farebbe smettere di funzionare anche
+sugli altri dispositivi.
 
 ### Rinnovo del token
 
