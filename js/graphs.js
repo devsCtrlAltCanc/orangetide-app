@@ -206,6 +206,62 @@ OT.registerWidget("etfFlowsChart", {
 // ============================================================
 // WIDGET fundingChart — FUNDING RATE (indicatore B2)
 // ============================================================
+// ============================================================
+// WIDGET etfFlowLine — FLUSSO NETTO ETF COME LINEA (SPEC 11.3)
+// ============================================================
+// Stato della scelta Giornaliero / Somma 5 giorni (resta cambiando pagina).
+const etfLineState = { mode: "sum" };
+
+OT.registerWidget("etfFlowLine", {
+  title: "Flussi netti ETF (linea)",
+  size: "full",
+  needs: ["history"],
+  render: function (body, files) {
+    const h = files.history.data;
+    const t = OT_CONFIG.texts.etf;
+    // Serie "somma 5 giorni": assente nei dati prodotti prima del 2026-11-26;
+    // in quel caso si mostra solo la giornaliera.
+    const hasSum = Array.isArray(h.series.etf_flow_sum);
+    if (!hasSum) etfLineState.mode = "daily";
+
+    const choices = hasSum ? OT.ui.choiceButtons("etfLine", [["daily", t.daily], ["sum", t.sum5]], etfLineState.mode) : "";
+    body.innerHTML = `<div class="ot-toolbar">${choices}</div>
+      <div class="ot-chart ot-chart-tall"></div><div class="ot-chart-note">${OT.escape(t.lineNote)}</div>`;
+    const container = body.querySelector(".ot-chart");
+    let chart = null;
+
+    /** Disegna il grafico; zoom = intervallo da conservare (null = iniziale). */
+    function draw(zoom) {
+      const daily = etfLineState.mode === "daily";
+      const flows = (daily ? h.series.etf_flow_daily : h.series.etf_flow_sum) || [];
+      chart = OT.charts.priceWithPane(container, {
+        dates: h.dates, price: h.price,
+        pane: {
+          name: daily ? t.lineDaily : t.lineSum, kind: "line", data: flows,
+          color: OT_CONFIG.colors.brand, zeroLine: true, splitNumber: 4,
+          format: function (v) { return OT.fmt.number(v, 0) + " M$"; },
+          // Asse compatto in miliardi (1.000 M$ = 1 mld$), con il meno tipografico.
+          axisFormat: function (v) {
+            if (v === 0) return "0";
+            const abs = Math.abs(v) / 1000;
+            return (v < 0 ? "−" : "") + OT.fmt.number(abs, abs % 1 === 0 ? 0 : 1) + " mld$";
+          },
+        },
+        zoomFrom: OT.charts.firstDate(h.dates, flows),
+      });
+      // Si conserva lo zoom scelto prima del cambio di serie.
+      if (zoom) chart.dispatchAction({ type: "dataZoom", start: zoom.start, end: zoom.end });
+    }
+    draw(null);
+
+    OT.ui.bindChoice(body, "etfLine", function (value) {
+      const z = chart.getOption().dataZoom[0];
+      etfLineState.mode = value;
+      draw({ start: z.start, end: z.end });
+    });
+  },
+});
+
 OT.registerWidget("fundingChart", {
   title: "Funding rate",
   size: "full",

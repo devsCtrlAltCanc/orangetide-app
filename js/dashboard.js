@@ -420,6 +420,90 @@ OT.registerWidget("cycleSummary", {
 });
 
 // ============================================================
+// WIDGET etfSummary — FLUSSI ETF DEGLI ULTIMI GIORNI (SPEC 11.1, 16.6)
+// ============================================================
+// Contesto, come il CVDD: non cambia i punteggi. Dati: latest.json → etf
+// (milioni di dollari; null se i flussi mancano; assente nei dati prodotti
+// prima del 2026-11-26).
+
+/**
+ * Importo in milioni di dollari con segno: 812.4 -> "+812 M$", −95 -> "−95 M$".
+ * @param {number|null} value
+ */
+function signedMillions(value) {
+  if (value === null || value === undefined) return "n/d";
+  const sign = value > 0 ? "+" : (value < 0 ? "−" : "");
+  return sign + OT.fmt.number(Math.abs(value), 0) + " M$";
+}
+
+/** Classe del colore di un importo: verde se entrate, rosso se uscite. */
+function flowClass(value) {
+  if (value > 0) return "ot-pos";
+  if (value < 0) return "ot-neg";
+  return "";
+}
+
+/**
+ * Testo della serie di giorni consecutivi: +3 -> "3 giorni" / "consecutivi
+ * in entrata"; −1 -> "1 giorno" / "in uscita"; 0 -> ultimo flusso a zero.
+ * @param {number} streak
+ * @returns {{value: string, sub: string}}
+ */
+function streakText(streak) {
+  const t = OT_CONFIG.texts.etf;
+  if (!streak) return { value: "0", sub: t.streakFlat };
+  const n = Math.abs(streak);
+  const value = n === 1 ? t.streakDay : t.streakDays.replace("{n}", n);
+  if (streak > 0) return { value: value, sub: n === 1 ? t.streakInOne : t.streakIn };
+  return { value: value, sub: n === 1 ? t.streakOutOne : t.streakOut };
+}
+
+OT.registerWidget("etfSummary", {
+  title: "Flussi ETF",
+  size: "full",
+  needs: ["latest"],
+
+  render: function (body, files) {
+    const e = files.latest.data.etf;
+    const t = OT_CONFIG.texts.etf;
+    if (!e) {
+      body.innerHTML = `<div class="ot-muted">${t.missing}</div>`;
+      return;
+    }
+    // Pillola della settimana: verde se afflussi, rossa se deflussi.
+    const weekBadge = e.level > 0 ? "buy" : (e.level < 0 ? "sell" : "hold");
+    const streak = streakText(e.streak);
+    // Percentile troncato all'intero, come nel report (SPEC 9.2).
+    const percentile = e.percentile === null ? "n/d" : Math.floor(e.percentile);
+
+    body.innerHTML = `
+      <div class="ot-tiles">
+        <div class="ot-tile">
+          <div class="ot-tile-label">${t.lastDay}</div>
+          <div class="ot-tile-value ${flowClass(e.flow)}">${signedMillions(e.flow)}</div>
+          <div class="ot-tile-sub">${OT.fmt.date(e.date)}</div>
+        </div>
+        <div class="ot-tile">
+          <div class="ot-tile-label">${t.sum.replace("{days}", e.sum_days)}</div>
+          <div class="ot-tile-value ${flowClass(e.sum)}">${signedMillions(e.sum)}</div>
+          <div class="ot-tile-sub">${t.daysIn.replace("{in}", e.days_in).replace("{days}", e.sum_days)}</div>
+        </div>
+        <div class="ot-tile">
+          <div class="ot-tile-label">${t.week}</div>
+          <div class="ot-tile-value"><span class="ot-badge ot-badge-${weekBadge} ot-badge-lg">${OT.escape(e.label || "n/d")}</span></div>
+          <div class="ot-tile-sub">${t.weekSub.replace("{p}", percentile)}</div>
+        </div>
+        <div class="ot-tile">
+          <div class="ot-tile-label">${t.streak}</div>
+          <div class="ot-tile-value ${flowClass(e.streak)}">${streak.value}</div>
+          <div class="ot-tile-sub">${streak.sub}</div>
+        </div>
+      </div>
+      <div class="ot-chart-note mt-2">${OT.escape(t.note)}</div>`;
+  },
+});
+
+// ============================================================
 // WIDGET report — REPORT A SEMAFORI (SPEC 9.2)
 // ============================================================
 // Non è nella dashboard (decisione del 2026-11-23: il dettaglio degli

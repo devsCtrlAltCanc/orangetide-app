@@ -351,6 +351,8 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .ot-tile-sub { font-size: 0.8rem; color: var(--ot-muted); }
+/* Pillola usata come valore di una tessera (es. "Afflussi forti" nei flussi ETF) */
+.ot-tile-value .ot-badge-lg { font-size: 0.95rem; padding: 0.3rem 0.75rem; }
 
 /* Tessera principale: arancione sfumato, testo bianco */
 .ot-tile-hero {

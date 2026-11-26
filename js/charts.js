@@ -263,6 +263,9 @@ OT.charts = (function () {
    *   pane: { name, kind ("line" | "bar"), data, format(v), color, area (true = area sotto la linea),
    *           min, max, zones [{from, to, color}], barColor(v),
    *           colorByValue (true = linea colorata come il prezzo),
+   *           zeroLine (true = linea tratteggiata sullo zero),
+   *           axisFormat(v) (etichette dell'asse, se diverse da format),
+   *           splitNumber (quante righe circa sull'asse: meno = più spazio),
    *           line2 { name, data, color } seconda serie (asse destro) }
    *   zoomFrom                  (facoltativo) data di inizio dello zoom iniziale
    */
@@ -316,6 +319,14 @@ OT.charts = (function () {
       // Area tra la linea e lo zero (es. drawdown), dello stesso colore ma trasparente.
       if (pane.area) paneSeries.areaStyle = { color: lineColor, opacity: 0.18 };
     }
+    // Linea tratteggiata sullo zero (es. flussi: sopra = entrate, sotto = uscite)
+    if (pane.zeroLine) {
+      paneSeries.markLine = {
+        silent: true, symbol: "none", label: { show: false },
+        lineStyle: { color: colors.muted, type: "dashed", width: 1 },
+        data: [{ yAxis: 0 }],
+      };
+    }
     // Fasce colorate di sfondo (es. zone dell'MVRV Z-Score)
     if (pane.zones) {
       paneSeries.markArea = {
@@ -359,7 +370,8 @@ OT.charts = (function () {
       Object.assign({ type: "log", gridIndex: 0, position: "right", scale: true,
         axisLabel: { color: colors.muted, fontSize: 11, formatter: shortUsd } }, { splitLine: axisCommon.splitLine }),
       Object.assign({ type: "value", gridIndex: 1, position: "right", min: pane.min, max: pane.max,
-        axisLabel: { color: colors.muted, fontSize: 11, formatter: pane.format } }, { splitLine: axisCommon.splitLine }),
+        splitNumber: pane.splitNumber,
+        axisLabel: { color: colors.muted, fontSize: 11, formatter: pane.axisFormat || pane.format } }, { splitLine: axisCommon.splitLine }),
     ];
     if (pane.line2) {
       yAxes.push({ type: "value", gridIndex: 1, position: "left", splitLine: { show: false },

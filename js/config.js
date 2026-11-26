@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.7.0",
+  version: "0.8.0",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".
@@ -117,7 +117,7 @@ window.OT_CONFIG = {
   pages: [
     {
       id: "dashboard", title: "Dashboard", icon: "bi-grid-1x2", nav: "main",
-      widgets: ["priceHero", "riskGauge", "fearGreed", "combinedReading", "horizonCards", "cycleSummary"],
+      widgets: ["priceHero", "riskGauge", "fearGreed", "combinedReading", "horizonCards", "etfSummary", "cycleSummary"],
     },
     {
       id: "storico", title: "Storico", icon: "bi-clock-history", nav: "main",
@@ -129,7 +129,7 @@ window.OT_CONFIG = {
     },
     {
       id: "grafici", title: "Grafici", icon: "bi-bar-chart-line", nav: "main",
-      widgets: ["riskChart", "fearGreedChart", "mvrvChart", "cvddChart", "etfFlowsChart", "fundingChart"],
+      widgets: ["riskChart", "fearGreedChart", "mvrvChart", "cvddChart", "etfFlowsChart", "etfFlowLine", "fundingChart"],
     },
     {
       id: "backtest", title: "Backtest", icon: "bi-clipboard-data", nav: "more",
@@ -368,6 +368,31 @@ window.OT_CONFIG = {
       rejected: "Token non valido o scaduto: aggiornalo in Impostazioni.",
       other: "Aggiornamento non riuscito.",
     },
+    // Flussi ETF: tessera della dashboard (dashboard.js, SPEC 11.1 e 16.6)
+    // e grafico a linea (graphs.js, SPEC 11.3). Importi in milioni di dollari.
+    etf: {
+      lastDay: "Ultimo giorno di borsa",
+      sum: "Ultimi {days} giorni di borsa",
+      daysIn: "{in} giorni in entrata su {days}",
+      week: "Settimana",
+      weekSub: "percentile {p} sull'ultimo anno",
+      streak: "Serie",
+      streakDays: "{n} giorni",
+      streakDay: "1 giorno",
+      streakIn: "consecutivi in entrata",
+      streakOut: "consecutivi in uscita",
+      streakInOne: "in entrata",
+      streakOutOne: "in uscita",
+      streakFlat: "ultimo flusso a zero",
+      missing: "Dati dei flussi ETF non disponibili.",
+      note: "Flussi netti di tutti gli ETF spot USA (Farside), in milioni di dollari. Sono contesto: non cambiano i segnali. I flussi tendono a seguire il prezzo: le uscite forti arrivano spesso dopo i cali, vicino ai minimi locali.",
+      daily: "Giornaliero",
+      sum5: "Somma 5 giorni",
+      lineDaily: "Flusso del giorno",
+      lineSum: "Somma 5 giorni",
+      lineNote: "Sotto il prezzo, il flusso netto (entrate − uscite) degli ETF spot USA come linea, in milioni di dollari (Farside): se ne legge il trend come per un prezzo (massimi e minimi crescenti o decrescenti). \"Somma 5 giorni\" dà una linea più pulita: è la settimana della tessera in Dashboard e il valore dell'indicatore B1. Linea tratteggiata = zero.",
+    },
+
     // Riquadro "Aggiornamento automatico" (settings.js, SPEC 11.5 e 11.7).
     autoUpdate: {
       everyTitle: "Aggiorna ogni N ore",
