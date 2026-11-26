@@ -24,7 +24,7 @@ window.OT_CONFIG = {
   // ------------------------------------------------------------
   // Da incrementare a ogni rilascio, INSIEME a VERSION in service-worker.js:
   // è il cambio di quel file che fa scoprire all'app la nuova versione.
-  version: "0.8.0",
+  version: "0.8.1",
 
   // Se true, la nuova versione si installa da sola alla successiva apertura;
   // se false (default) compare l'avviso "Nuova versione disponibile — Aggiorna".

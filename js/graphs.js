@@ -179,7 +179,7 @@ OT.registerWidget("cvddChart", {
 // WIDGET etfFlowsChart — FLUSSI ETF
 // ============================================================
 OT.registerWidget("etfFlowsChart", {
-  title: "Flussi ETF spot USA",
+  title: "Flussi netti ETF spot USA",
   size: "full",
   needs: ["history"],
   render: function (body, files) {
@@ -213,7 +213,7 @@ OT.registerWidget("etfFlowsChart", {
 const etfLineState = { mode: "sum" };
 
 OT.registerWidget("etfFlowLine", {
-  title: "Flussi netti ETF (linea)",
+  title: "Trend flussi netti ETF spot USA",
   size: "full",
   needs: ["history"],
   render: function (body, files) {
